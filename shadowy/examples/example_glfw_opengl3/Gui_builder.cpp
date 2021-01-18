@@ -4,6 +4,7 @@ ImVec4 CustomColor[ImGuiCol_COUNT];
 
 bool button_ok = false;
 int file_menu = 0;
+bool color = false;
 std::string file_manege = "File to save";
 std::string theme = "theme.col";
 
@@ -18,6 +19,7 @@ indentification_basic tlg;
 identification_slider slider_float;
 identification_slider slider_integer;
 indentification_basic radio;
+indentification_basic lbl;
 child_bar child;
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -35,7 +37,7 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 void PushAllColorsDark(ImGuiStyle dark)
 {
 	int i = 0;
-	for (auto color : dark.Colors)
+	for (const auto color : dark.Colors)
 	{
 		ImGui::PushStyleColor(static_cast<ImGuiCol_>(i), color);
 		++i;
@@ -89,7 +91,7 @@ void color_editor()
 	static ImGuiStyle ref_saved_style;
 	ImGuiStyle* ref = &ref_saved_style;;
 
-	ImGui::Begin("Gui Builder color export/import ");
+	ImGui::Begin("Gui Builder color export/import ", &color);
 
 	static int output_dest = 0;
 	static bool output_only_modified = false;
@@ -120,16 +122,11 @@ void color_editor()
 		remove(theme.c_str());
 
 		std::ofstream filewrite(theme);
-		for (auto col : CustomColor)
-		{
-			char* buffer = new char[MAX_PATH];
-
-			sprintf(buffer, "%.2ff, %.2ff, %.2ff, %.2ff\n", col.x, col.y, col.z, col.w);
-
-			filewrite << buffer;
-
-			delete[] buffer;
-		}
+		for (const auto col : CustomColor)
+            filewrite << col.x << "," << col.y << "," << col.z << "," << col.w << std::endl;
+		
+		
+		
 		filewrite.close();
 	}
 
@@ -257,7 +254,13 @@ void Gui_builder::loading_builder(std::string& file)
 			} if (!line.compare("#radio"))
 			{
 				menu = 7; continue;
-			}
+			}if (!line.compare("#label"))
+            {
+                menu = 8; continue;
+            }if (!line.compare("#childs"))
+            {
+                menu = 10; continue;
+            }
 			if (line.empty())
 				continue;
 
@@ -269,7 +272,8 @@ void Gui_builder::loading_builder(std::string& file)
 			{
 			case 0:
 				std::cout << "#forms\n";
-				form_load.Form_id = std::atoi(obj[0].c_str());
+				form_load.form_id = std::atoi(obj[0].c_str());
+                id_ = form_load.form_id;
 				form_load.name_form = obj[1];
 				size = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
 
@@ -281,6 +285,8 @@ void Gui_builder::loading_builder(std::string& file)
 				std::cout << "##buttons\n";
 				btn_load.Form_id = std::atoi(obj[0].c_str());
 				btn_load.btn_id = std::atoi(obj[1].c_str());
+                btn_id_ = btn_load.btn_id;
+
 				size = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
 
 				btn_load.size_item = size;
@@ -296,6 +302,7 @@ void Gui_builder::loading_builder(std::string& file)
 
 				text_load.Form_id = std::atoi(obj[0].c_str());
 				text_load.text_id = std::atoi(obj[1].c_str());
+                txt_id_ = text_load.text_id;
 				text_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
 				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
 				text_load.Pos_item = pos;
@@ -308,6 +315,7 @@ void Gui_builder::loading_builder(std::string& file)
 				std::cout << "##sliderI\n";
 				sliderI_load.Form_id = std::atoi(obj[0].c_str());
 				sliderI_load.slider_id = std::atoi(obj[1].c_str());
+                si_ = sliderI_load.slider_id;
 				sliderI_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
 				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
 				sliderI_load.Pos_item = pos;
@@ -320,6 +328,7 @@ void Gui_builder::loading_builder(std::string& file)
 
 				sliderF_load.Form_id = std::atoi(obj[0].c_str());
 				sliderF_load.slider_id = std::atoi(obj[1].c_str());
+                sf_ = sliderF_load.slider_id;
 				sliderF_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
 				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
 				sliderF_load.Pos_item = pos;
@@ -332,6 +341,7 @@ void Gui_builder::loading_builder(std::string& file)
 
 				toggle_load.form_id = std::atoi(obj[0].c_str());
 				toggle_load.id = std::atoi(obj[1].c_str());;
+                tg_id_ = toggle_load.id;
 				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
 				toggle_load.Pos_item = pos;
 				toggle_load.name = obj[4];
@@ -343,6 +353,7 @@ void Gui_builder::loading_builder(std::string& file)
 				std::cout << "##checkbox\n";
 				checkbox_load.form_id = std::atoi(obj[0].c_str());
 				checkbox_load.id = std::atoi(obj[1].c_str());;
+                chk_id_ = checkbox_load.id;
 				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
 				checkbox_load.Pos_item = pos;
 				checkbox_load.name = obj[4];
@@ -353,13 +364,42 @@ void Gui_builder::loading_builder(std::string& file)
 				std::cout << "##radio\n";
 				radio_load.form_id = std::atoi(obj[0].c_str());
 				radio_load.id = std::atoi(obj[1].c_str());;
+                rd_ = radio_load.id;
 				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
 				radio_load.Pos_item = pos;
 				radio_load.name = obj[4];
 				Radio.push_back(radio_load);
 				//radio
 				break;
+            case 8:
+                std::cout << "##label\n";
+                lbl.form_id = std::atoi(obj[0].c_str());
+                lbl.id = std::atoi(obj[1].c_str());;
+                lbl_ = lbl.id;
+                pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
+                lbl.Pos_item = pos;
+                lbl.name = obj[4];
+                label.push_back(lbl);
+                //label
+                break;
+            case 10:
+                std::cout << "##child\n";
+                child.a.form_id = std::atoi(obj[0].c_str());
+                child.a.id = std::atoi(obj[1].c_str());;
+                chld_ = child.a.id;
+                child.border = std::atoi(obj[2].c_str());
+                pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
+                child.a.Pos_item = pos;
+                size = { static_cast<float>(std::atof(obj[5].c_str())), static_cast<float>(std::atof(obj[6].c_str())) };
+                child.size = size;
+                child.a.name = obj[7];
+                childs.push_back(child);
+                //child
+                break;
+
 			}
+
+
 		}
 		f_read.close();
 	}
@@ -375,7 +415,7 @@ void Gui_builder::save_building(std::string& file)
 		f_write << "#forms\n";
 		for (const auto& form : forms)
 		{
-			f_write << form.Form_id << "," << form.name_form << "," << form.size.x << "," << form.size.y << "\n";
+			f_write << form.form_id << "," << form.name_form << "," << form.size.x << "," << form.size.y << "\n";
 		}
 		if (!buttons.empty())
 			f_write << "#buttons\n";
@@ -426,6 +466,21 @@ void Gui_builder::save_building(std::string& file)
 			f_write << obj.form_id << "," << obj.id;
 			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
 		}
+        if (!label.empty())
+            f_write << "#label\n";
+        for (const auto& obj : label)
+        {
+            f_write << obj.form_id << "," << obj.id;
+            f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
+        }
+        if (!childs.empty())
+            f_write << "#childs\n";
+        for (const auto& obj : childs)
+        {
+            f_write << obj.a.form_id << "," << obj.a.id << "," << obj.border;
+            f_write << "," << obj.a.Pos_item.x << "," << obj.a.Pos_item.y;
+            f_write << "," << obj.size.x << "," << obj.size.y << "," << obj.a.name << "\n";
+        }
 
 		f_write.close();
 	}
@@ -436,13 +491,22 @@ void Gui_builder::mainform_draw(HWND wnd)
 	//ImGui::StyleColorsDark();
 
 	PushAllColorsDark(dark_);
+    int width = 1280, height;
+    RECT rect;
+    if (GetWindowRect(wnd, &rect))
+    {
+        width  = rect.right - rect.left;
+        height = rect.bottom - rect.top;
+    }
+
+
 
 	if (button_ok)
 	{
 		ImGui::SetNextWindowSize({ 200,100 });
 		ImGui::Begin(file_manege.c_str(), &button_ok);
 
-		ImGui::InputText("##FILE NAME", (char*)(file.c_str()), 255);
+		ImGui::InputText("##FILE NAME", const_cast<char*>(file.c_str()), 255);
 
 		if (ImGui::Button("OK"))
 			button_ok = !button_ok;
@@ -457,15 +521,19 @@ void Gui_builder::mainform_draw(HWND wnd)
 			case 1:
 				loading_builder(file);
 				break;
-			}
+            default:
+			    break;
+            }
 		}
 
 		ImGui::End();
 	}
 
-	ImGui::SetNextWindowSize({ 1280,150 });
+	ImGui::SetNextWindowSize({ static_cast<float>(width-16),100 });
 	ImGui::SetNextWindowPos({ 0,0 });
 	ImGui::Begin("BUILDER", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
+
+    //std::cout << width << std::endl;
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -519,6 +587,9 @@ void Gui_builder::mainform_draw(HWND wnd)
 	if (ImGui::Button("New RadioButton"))
 		create_radio();
 	ImGui::SameLine();
+    if (ImGui::Button("New Label"))
+        create_label();
+    ImGui::SameLine();
 	if (ImGui::Button("New Child"))
 		create_child();
 	ImGui::SameLine();
@@ -530,7 +601,6 @@ void Gui_builder::mainform_draw(HWND wnd)
 
 	ImGui::SameLine();
 
-	static bool color;
 	ImGui::Checkbox("Color editor", &color);
 	if (color)
 		color_editor();
@@ -615,6 +685,13 @@ void Gui_builder::create_child()
 	childs.push_back({ {id_, chld_, {10,20}, name}, true, {30,30} });
 }
 
+void Gui_builder::create_label()
+{
+    lbl_++;
+    const auto name = "label:" + std::to_string(lbl_);
+    label.push_back({id_, lbl_, {10,20}, "You text here" });
+}
+
 void Gui_builder::show_form(HWND window)
 {
 	Gui_builder::window = window;
@@ -635,7 +712,7 @@ void Gui_builder::show_form(HWND window)
 		//Buttons
 		for (auto& button : buttons)
 		{
-			if (button.Form_id == forms[id_form].Form_id)
+			if (button.Form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(button.Pos_item);
 				ImGui::Button(button.name_item.c_str(), button.size_item);
@@ -645,7 +722,7 @@ void Gui_builder::show_form(HWND window)
 		//Texts
 		for (auto& text : texts)
 		{
-			if (text.Form_id == forms[id_form].Form_id)
+			if (text.Form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(text.Pos_item);
 				ImGui::PushItemWidth(text.wight);
@@ -656,7 +733,7 @@ void Gui_builder::show_form(HWND window)
 		//CheckBox
 		for (auto& id_chk : checkbox)
 		{
-			if (id_chk.form_id == forms[id_form].Form_id)
+			if (id_chk.form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(id_chk.Pos_item);
 				static bool vb;
@@ -667,7 +744,7 @@ void Gui_builder::show_form(HWND window)
 		//Toggle
 		for (auto& id_tg : toggle)
 		{
-			if (id_tg.form_id == forms[id_form].Form_id)
+			if (id_tg.form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(id_tg.Pos_item);
 				static bool vb;
@@ -677,7 +754,7 @@ void Gui_builder::show_form(HWND window)
 		//Radio box
 		for (size_t i = 0; i < Radio.size(); ++i)
 		{
-			if (Radio[i].form_id == forms[id_form].Form_id)
+			if (Radio[i].form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(Radio[i].Pos_item);
 				static int vi;
@@ -687,7 +764,7 @@ void Gui_builder::show_form(HWND window)
 		//Slider Integer
 		for (auto& id_si : SliderI)
 		{
-			if (id_si.Form_id == forms[id_form].Form_id)
+			if (id_si.Form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(id_si.Pos_item);
 				static int vl;
@@ -699,7 +776,7 @@ void Gui_builder::show_form(HWND window)
 		//Slider Float
 		for (auto& id_si : SliderF)
 		{
-			if (id_si.Form_id == forms[id_form].Form_id)
+			if (id_si.Form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(id_si.Pos_item);
 				static float vl;
@@ -707,11 +784,20 @@ void Gui_builder::show_form(HWND window)
 				ImGui::SliderFloat(id_si.name.c_str(), &vl, 0, 100);
 			}
 		}
+        //label
+        for (auto& lbl : label)
+        {
+            if (lbl.form_id == forms[id_form].form_id)
+            {
+                ImGui::SetCursorPos(lbl.Pos_item);
+                ImGui::Text(lbl.name.c_str());
+            }
+        }
 
 		//Child
 		for (auto& id_child : childs)
 		{
-			if (id_child.a.form_id == forms[id_form].Form_id)
+			if (id_child.a.form_id == forms[id_form].form_id)
 			{
 				ImGui::SetCursorPos(id_child.a.Pos_item);
 				ImGui::BeginChild(id_child.a.name.c_str(), id_child.size, id_child.border);
@@ -758,8 +844,8 @@ ImVec2 Move_item(ImVec2 Obj_pos, HWND window)
 void Gui_builder::show_propriets_geral()
 {
 	PushAllColorsDark(dark_);
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 
 	if (ImGui::BeginCombo("##itens", current_item.c_str()))
@@ -899,6 +985,20 @@ void Gui_builder::show_propriets_geral()
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
+        for (size_t n = 0; n < label.size(); n++)
+        {
+            const bool is_selected = (current_item == label[n].name);
+            if (ImGui::Selectable(label[n].name.c_str(), is_selected))
+            {
+                current_item = label[n].name;
+                lbl = label[n];
+                index = n;
+                identf = 9;
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
 
 		ImGui::EndCombo();
 	}
@@ -921,11 +1021,11 @@ void Gui_builder::show_propriets_geral()
 		texts[index] = txt;
 		break;
 	case 4:
-		show_propriedades_chk_tlg(chk);
+        show_propriedades_basic(chk);
 		checkbox[index] = chk;
 		break;
 	case 5:
-		show_propriedades_chk_tlg(tlg);
+        show_propriedades_basic(tlg);
 		toggle[index] = tlg;
 		break;
 
@@ -938,10 +1038,13 @@ void Gui_builder::show_propriets_geral()
 		SliderF[index] = slider_float;
 		break;
 	case 8:
-		show_propriedades_chk_tlg(radio);
+        show_propriedades_basic(radio);
 		Radio[index] = radio;
 		break;
-
+    case 9:
+        show_propriedades_basic(lbl);
+        label[index] = lbl;
+        break;
 	case 20:
 		show_child_propriedade(child);
 		childs[index] = child;
@@ -953,32 +1056,31 @@ void Gui_builder::show_propriets_geral()
 	PopAllColorsCustom();
 }
 
-void Gui_builder::show_propriedades_chk_tlg(indentification_basic& checkbox_toggle)
+void Gui_builder::show_propriedades_basic(indentification_basic& obj_basic)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { checkbox_toggle.Pos_item.x, checkbox_toggle.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(checkbox_toggle.name.c_str());
-	ImGui::InputText("Name", name, 100);
+    ImGui::SetNextWindowPos({ 0,100 });
+    ImGui::SetNextWindowSize({ 200,700 - 100 });
+    ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
+    float v[2] = { obj_basic.Pos_item.x, obj_basic.Pos_item.y };
+    ImGui::SliderFloat("posX", &v[0], 0, 1000);
+    ImGui::SliderFloat("posY", &v[1], 0, 1000);
+    auto* name = const_cast<char*>(obj_basic.name.c_str());
+    ImGui::InputText("Name", name, 100);
 
-	int father = checkbox_toggle.form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-	checkbox_toggle.form_id = father;
-	checkbox_toggle.Pos_item.x = v[0];
-	checkbox_toggle.Pos_item.y = v[1];
-	checkbox_toggle.Pos_item = Move_item(checkbox_toggle.Pos_item, window);
-
-	checkbox_toggle.name = name;
-	ImGui::End();
+    int father = obj_basic.form_id;
+    ImGui::InputInt("ID Form PAI", &father, 1, 10);
+    obj_basic.form_id = father;
+    obj_basic.Pos_item.x = v[0];
+    obj_basic.Pos_item.y = v[1];
+    obj_basic.Pos_item = Move_item(obj_basic.Pos_item, window);
+    obj_basic.name = name;
+    ImGui::End();
 }
 
 void Gui_builder::show_propriedades_slider(identification_slider& slider)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 	float v[2] = { slider.Pos_item.x, slider.Pos_item.y };
 	ImGui::SliderFloat("posX", &v[0], 0, 1000);
@@ -1002,8 +1104,8 @@ void Gui_builder::show_propriedades_slider(identification_slider& slider)
 
 void Gui_builder::show_propriedades_btn(indentification_btn& item_button)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 	float v[2] = { item_button.Pos_item.x, item_button.Pos_item.y };
 	ImGui::SliderFloat("posX", &v[0], 0, 1000);
@@ -1031,8 +1133,8 @@ void Gui_builder::show_propriedades_btn(indentification_btn& item_button)
 
 void Gui_builder::show_propriedades_txt(indentification_text& text)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 	float v[2] = { text.Pos_item.x, text.Pos_item.y };
 	ImGui::SliderFloat("posX", &v[0], 0, 1000);
@@ -1057,12 +1159,12 @@ void Gui_builder::show_propriedades_txt(indentification_text& text)
 
 void Gui_builder::show_propriedades_form(indentification_form& form)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 
 	auto* name = const_cast<char*>(form.name_form.c_str());
-	int ids = form.Form_id;
+	int ids = form.form_id;
 	ImGui::InputInt("ID", &ids, 1, 1);
 	ImGui::InputText("Name", name, 100);
 	ImGui::InputFloat("width", &form.size.x, 1, 1);
@@ -1070,7 +1172,7 @@ void Gui_builder::show_propriedades_form(indentification_form& form)
 
 	// ImVec2 size(width, height);
 
-	form.Form_id = ids;
+	form.form_id = ids;
 	// form.size = size;
 	form.name_form = name;
 
@@ -1086,8 +1188,8 @@ void Gui_builder::show_propriedades_form(indentification_form& form)
 
 void Gui_builder::show_child_propriedade(child_bar& child)
 {
-	ImGui::SetNextWindowPos({ 0,150 });
-	ImGui::SetNextWindowSize({ 200,700 - 150 });
+	ImGui::SetNextWindowPos({ 0,100 });
+	ImGui::SetNextWindowSize({ 200,700 - 100 });
 	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 	float v[2] = { child.a.Pos_item.x, child.a.Pos_item.y };
 	ImGui::SliderFloat("posX", &v[0], 0, 1000);
@@ -1121,9 +1223,10 @@ void Gui_builder::create_builder()
 		file_builder.append("ImGui::SetNextWindowSize({" + std::to_string(static_cast<int>(forms[i].size.x)) + ".f," + std::to_string(static_cast<int>(forms[i].size.y)) + ".f});\n");
 		file_builder.append("ImGui::Begin(\"" + forms[i].name_form + "\");");
 		file_builder.append("\n");
+
 		for (auto& button : buttons)
 		{
-			if (button.Form_id == forms[i].Form_id)
+			if (button.Form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(button.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(
 					button.Pos_item.y)) + ".f});\n");
@@ -1133,16 +1236,16 @@ void Gui_builder::create_builder()
 		}
 		for (auto& text : texts)
 		{
-			if (text.Form_id == forms[i].Form_id)
+			if (text.Form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(text.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(text.Pos_item.y)) + ".f);\n");
-				file_builder.append("ImGui::PushItemWidth(" + std::to_string(text.wight) + ".f);\n");
+				file_builder.append("ImGui::PushItemWidth(" + std::to_string(static_cast<int>(text.wight)) + ".f);\n");
 				file_builder.append("ImGui::InputText(\"" + text.name_text + "\",\"" + text.same_buffer + "\",25);\n\n");
 			}
 		}
 		for (auto& chk : checkbox)
 		{
-			if (chk.form_id == forms[i].Form_id)
+			if (chk.form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(chk.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(chk.Pos_item.y)) + ".f);\n");
 				file_builder.append("static bool var_bool;\n");
@@ -1152,7 +1255,7 @@ void Gui_builder::create_builder()
 
 		for (auto& tgl : toggle)
 		{
-			if (tgl.form_id == forms[i].Form_id)
+			if (tgl.form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(tgl.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(tgl.Pos_item.y)) + ".f);\n");
 				file_builder.append("static bool var_tgl;\n");
@@ -1160,9 +1263,9 @@ void Gui_builder::create_builder()
 			}
 		}
 
-		for (auto& radio : toggle)
+		for (auto& radio : Radio)
 		{
-			if (radio.form_id == forms[i].Form_id)
+			if (radio.form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(radio.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(radio.Pos_item.y)) + ".f);\n");
 				file_builder.append("static bool var_radio;\n");
@@ -1172,7 +1275,7 @@ void Gui_builder::create_builder()
 
 		for (auto& si : SliderI)
 		{
-			if (si.Form_id == forms[i].Form_id)
+			if (si.Form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(si.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(si.Pos_item.y)) + ".f);\n");
 				file_builder.append("ImGui::PushItemWidth(" + std::to_string(si.wight) + ".f);\n");
@@ -1182,7 +1285,7 @@ void Gui_builder::create_builder()
 		}
 		for (auto& sf : SliderF)
 		{
-			if (sf.Form_id == forms[i].Form_id)
+			if (sf.Form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(sf.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(sf.Pos_item.y)) + ".f);\n");
 				file_builder.append("ImGui::PushItemWidth(" + std::to_string(static_cast<int>(sf.wight)) + ".f);\n");
@@ -1191,9 +1294,20 @@ void Gui_builder::create_builder()
 			}
 		}
 
+        for (auto& lbl : label)
+        {
+            if (lbl.form_id == forms[i].form_id)
+            {
+                file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(lbl.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(lbl.Pos_item.y)) + ".f);\n");
+                file_builder.append("ImGui::Text(\"" + lbl.name + "\");\n\n");
+    
+            }
+        }
+
+
 		for (auto& childer : childs)
 		{
-			if (childer.a.form_id == forms[i].Form_id)
+			if (childer.a.form_id == forms[i].form_id)
 			{
 				file_builder.append("ImGui::SetCursorPos(" + std::to_string(static_cast<int>(childer.a.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(childer.a.Pos_item.y)) + ".f);\n");
 				file_builder.append("ImGui::BeginChild(\"" + childer.a.name + "\",{"

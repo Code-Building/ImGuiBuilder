@@ -3,14 +3,16 @@
 
 void ToggleButton(const char* str_id, bool* v);
 void color_editor();
+
+
 struct indentification_btn
 {
-	uint32_t Form_id;
-	uint32_t btn_id;
-	ImVec2 Pos_item;
-	ImVec2 size_item;
+	uint32_t Form_id = 0;
+	uint32_t btn_id = 0;
+	ImVec2 Pos_item = {0,0};
+	ImVec2 size_item = {0,0};
 	bool edition_pos = false;
-	std::string name_item;
+	std::string name_item = "bnt id:";
 };
 
 struct indentification_text
@@ -26,34 +28,34 @@ struct indentification_text
 
 struct indentification_form
 {
-	uint32_t Form_id;
+	uint32_t form_id = 0;
 	ImVec2 size = { 200,100 };
 	bool edtion = false;
-	std::string name_form;
+	std::string name_form = "form";
 };
 
 struct indentification_basic
 {
-	uint32_t form_id;
-	uint32_t id;
-	ImVec2 Pos_item;
-	std::string name;
+	uint32_t form_id = 0;
+	uint32_t id = 0;
+	ImVec2 Pos_item = {};
+	std::string name = "basic item";
 };
 
 struct child_bar
 {
 	indentification_basic a;
 	bool border = false;
-	ImVec2 size;
+	ImVec2 size = {};
 };
 
 struct identification_slider
 {
-	uint32_t Form_id;
-	uint32_t slider_id;
-	ImVec2 Pos_item;
-	float wight;
-	std::string name;
+	uint32_t Form_id = 0;
+	uint32_t slider_id = 0;
+	ImVec2 Pos_item = {};
+	float wight = 0;
+	std::string name = "sliderID";
 };
 
 class Gui_builder
@@ -69,6 +71,7 @@ private:
 	uint32_t si_ = 0;
 	uint32_t rd_ = 0;
 	uint32_t chld_ = 0;
+    uint32_t lbl_ = 0;
 	std::vector<indentification_form>       forms;
 	std::vector<indentification_btn>        buttons;
 	std::vector<indentification_text>       texts;
@@ -78,6 +81,7 @@ private:
 	std::vector<identification_slider>      SliderI;
 	std::vector<indentification_basic>      Radio;
 	std::vector<child_bar>                  childs;
+    std::vector<indentification_basic>      label;
 	HWND window{};
 	std::string file_builder;
 	ImGuiStyle dark_;
@@ -102,6 +106,7 @@ public:
 	void create_sliderF();
 	void create_radio();
 	void create_child();
+    void create_label();
 
 	void show_form(HWND window);
 	void save_building(std::string& file);
@@ -109,10 +114,10 @@ public:
 	void show_propriedades_btn(indentification_btn& item_button);
 	void show_propriedades_txt(indentification_text& text);
 	void show_propriedades_form(indentification_form& form);
-	void show_propriedades_chk_tlg(indentification_basic& checkbox_toggle);
 	void show_propriedades_slider(identification_slider& slider);
 	void show_child_propriedade(child_bar& child);
 	void show_propriets_geral();
+    void show_propriedades_basic(indentification_basic& obj_basic);
 
 	void create_builder();
 };
