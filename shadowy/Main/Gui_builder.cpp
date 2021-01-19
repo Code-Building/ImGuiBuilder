@@ -162,7 +162,7 @@ std::string style = "Custom.style";
 void window_flag(ImGuiStyle &custom_gui_style)
 {
     //custom_gui_style = ImGui::GetStyle(); //custom_gui_style
-    ImGui::Begin("WINDOW");
+    ImGui::Begin("Style Window Editor", &color);
     if(ImGui::Button("LOAD"))
     {
         std::ifstream r_file(style);
@@ -339,7 +339,50 @@ void window_flag(ImGuiStyle &custom_gui_style)
     ImGui::SameLine();
     if(ImGui::Button("EXPORT"))
     {
-        
+        ImGui::LogToClipboard();
+
+        ImGui::LogText("namespace ImGui {\n void CustomStyle() {\n");
+        ImGui::LogText("ImGuiStyle& style = ImGui::GetStyle();\n");
+
+        // Padding
+        ImGui::LogText("style.WindowPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.WindowPadding.x, custom_gui_style.WindowPadding.y);
+        ImGui::LogText("style.FramePadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.FramePadding.x, custom_gui_style.FramePadding.y);
+        ImGui::LogText("style.CellPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.CellPadding.x, custom_gui_style.CellPadding.y);
+        ImGui::LogText("style.ItemSpacing = ImVec2(%.0f, %.0f);\n", custom_gui_style.ItemSpacing.x, custom_gui_style.ItemSpacing.y);
+        ImGui::LogText("style.ItemInnerSpacing = ImVec2(%.0f, %.0f);\n", custom_gui_style.ItemInnerSpacing.x, custom_gui_style.ItemInnerSpacing.y);
+        ImGui::LogText("style.TouchExtraPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.TouchExtraPadding.x, custom_gui_style.TouchExtraPadding.y);
+        ImGui::LogText("style.IndentSpacing = %.0f\n", custom_gui_style.IndentSpacing);
+        ImGui::LogText("style.ScrollbarSize = %.0f\n", custom_gui_style.ScrollbarSize);
+        ImGui::LogText("style.GrabMinSize = %.0f\n", custom_gui_style.GrabMinSize);
+        ImGui::LogText("style.WindowBorderSize = %.0f\n", custom_gui_style.WindowBorderSize);
+        ImGui::LogText("style.ChildBorderSize = %.0f\n", custom_gui_style.ChildBorderSize);
+        ImGui::LogText("style.PopupBorderSize = %.0f\n", custom_gui_style.PopupBorderSize);
+        ImGui::LogText("style.FrameBorderSize = %.0f\n", custom_gui_style.FrameBorderSize);
+        ImGui::LogText("style.TabBorderSize = %.0f\n", custom_gui_style.TabBorderSize);
+
+        // Rounding
+        ImGui::LogText("style.WindowRounding = %.0f\n", custom_gui_style.WindowRounding);
+        ImGui::LogText("style.ChildRounding = %.0f\n", custom_gui_style.ChildRounding);
+        ImGui::LogText("style.FrameRounding = %.0f\n", custom_gui_style.FrameRounding);
+        ImGui::LogText("style.PopupRounding = %.0f\n", custom_gui_style.PopupRounding);
+        ImGui::LogText("style.ScrollbarRounding = %.0f\n", custom_gui_style.ScrollbarRounding);
+        ImGui::LogText("style.GrabRounding = %.0f\n", custom_gui_style.GrabRounding);
+        ImGui::LogText("style.LogSliderDeadzone = %.0f\n", custom_gui_style.LogSliderDeadzone);
+        ImGui::LogText("style.TabRounding = %.0f\n", custom_gui_style.TabRounding);
+
+        // Position
+        ImGui::LogText("style.WindowTitleAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.WindowTitleAlign.x, custom_gui_style.WindowTitleAlign.y);
+        ImGui::LogText("style.WindowMenuButtonPosition = %.0f\n", custom_gui_style.WindowMenuButtonPosition);
+        ImGui::LogText("style.ColorButtonPosition = %.0f\n", custom_gui_style.ColorButtonPosition);
+        ImGui::LogText("style.ButtonTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.ButtonTextAlign.x, custom_gui_style.ButtonTextAlign.y);
+        ImGui::LogText("style.SelectableTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.SelectableTextAlign.x, custom_gui_style.SelectableTextAlign.y);
+
+        // Nani??
+        ImGui::LogText("style.DisplaySafeAreaPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.DisplaySafeAreaPadding.x, custom_gui_style.DisplaySafeAreaPadding.y);
+
+        ImGui::LogText("}\n}\n");
+
+        ImGui::LogFinish();
     }
     ImGui::InputText("##File_STYLE", const_cast<char*>(style.c_str()), 255, 0);
 
@@ -403,26 +446,24 @@ void color_editor()
     window_flag(custom_gui_style);
     ImGui::Begin("Gui Builder color export/import ", &color);
    
-    static int output_dest = 0;
     static bool output_only_modified = false;
 
     if (ImGui::Button("Export"))
     {
-        if (output_dest == 0)
-        {
-            ImGui::LogToClipboard();
+        ImGui::LogToClipboard();
 
-            ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;\n");
-            for (auto i = 0; i < ImGuiCol_COUNT; i++)
-            {
-                const auto& col = custom_gui_style.Colors[i];
-                const auto* name = ImGui::GetStyleColorName(i);
-                if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
-                    ImGui::LogText("colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);\n",
-                        name, 23 - static_cast<int>(strlen(name)), "", col.x, col.y, col.z, col.w);
-            }
-            ImGui::LogFinish();
+        ImGui::LogText("namespace ImGui {\n void CustomColor() {\n");
+        ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;\n");
+        for (auto i = 0; i < ImGuiCol_COUNT; i++)
+        {
+            const auto& col = custom_gui_style.Colors[i];
+            const auto* name = ImGui::GetStyleColorName(i);
+            if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
+                ImGui::LogText("colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);\n",
+                    name, 23 - static_cast<int>(strlen(name)), "", col.x, col.y, col.z, col.w);
         }
+        ImGui::LogText("}\n}\n");
+        ImGui::LogFinish();
     }
     ImGui::SameLine();
 
