@@ -16,3 +16,11 @@ shadowy/Main/.vs/example_glfw_opengl3/v16/.suo
 *.tlog
 *.obj
 *.idb
+*.col
+*.col
+*.style
+*.col
+*.builder
+shadowy/.vs/imgui_examples/v16/.suo
+shadowy/.vs/CodeGui_builder/v16/.suo
+*.idb
