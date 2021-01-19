@@ -167,15 +167,126 @@ void window_flag(ImGuiStyle &custom_gui_style)
     {
         std::ifstream r_file(style);
         std::string line;
-        if(r_file.is_open())
+
+        int fileindex = 0;
+
+        if (r_file.is_open())
         {
-            while(!r_file.eof())
+            while (!r_file.eof())
             {
-            std::getline(r_file, line);
-            auto b_line = split(line, ',');
+                std::getline(r_file, line);
+
+                if (line.find(",") != std::string::npos)
+                {
+                    auto b_line = split(line, ',');
+
+                    switch (fileindex)
+                    {
+                    case 0:
+                        custom_gui_style.WindowPadding.x = std::stof(b_line[0]);
+                        custom_gui_style.WindowPadding.y = std::stof(b_line[1]);
+                        break;
+                    case 1:
+                        custom_gui_style.FramePadding.x = std::stof(b_line[0]);
+                        custom_gui_style.FramePadding.y = std::stof(b_line[1]);
+                        break;
+                    case 2:
+                        custom_gui_style.CellPadding.x = std::stof(b_line[0]);
+                        custom_gui_style.CellPadding.y = std::stof(b_line[1]);
+                        break;
+                    case 3:
+                        custom_gui_style.ItemSpacing.x = std::stof(b_line[0]);
+                        custom_gui_style.ItemSpacing.y = std::stof(b_line[1]);
+                        break;
+                    case 4:
+                        custom_gui_style.ItemInnerSpacing.x = std::stof(b_line[0]);
+                        custom_gui_style.ItemInnerSpacing.y = std::stof(b_line[1]);
+                        break;
+                    case 5:
+                        custom_gui_style.TouchExtraPadding.x = std::stof(b_line[0]);
+                        custom_gui_style.TouchExtraPadding.y = std::stof(b_line[1]);
+                        break;
+                    case 22:
+                        custom_gui_style.WindowTitleAlign.x = std::stof(b_line[0]);
+                        custom_gui_style.WindowTitleAlign.y = std::stof(b_line[1]);
+                        break;
+                    case 25:
+                        custom_gui_style.ButtonTextAlign.x = std::stof(b_line[0]);
+                        custom_gui_style.ButtonTextAlign.y = std::stof(b_line[1]);
+                        break;
+                    case 26:
+                        custom_gui_style.SelectableTextAlign.x = std::stof(b_line[0]);
+                        custom_gui_style.SelectableTextAlign.y = std::stof(b_line[1]);
+                        break;
+                    case 27:
+                        custom_gui_style.DisplaySafeAreaPadding.x = std::stof(b_line[0]);
+                        custom_gui_style.DisplaySafeAreaPadding.y = std::stof(b_line[1]);
+                        break;
+                    }
+                }
+
+                switch (fileindex)
+                {
+                case 6:
+                    custom_gui_style.IndentSpacing = std::stof(line);
+                    break;
+                case 7:
+                    custom_gui_style.ScrollbarSize = std::stof(line);
+                    break;
+                case 8:
+                    custom_gui_style.GrabMinSize = std::stof(line);
+                    break;
+                case 9:
+                    custom_gui_style.WindowBorderSize = std::stof(line);
+                    break;
+                case 10:
+                    custom_gui_style.ChildBorderSize = std::stof(line);
+                    break;
+                case 11:
+                    custom_gui_style.PopupBorderSize = std::stof(line);
+                    break;
+                case 12:
+                    custom_gui_style.FrameBorderSize = std::stof(line);
+                    break;
+                case 13:
+                    custom_gui_style.TabBorderSize = std::stof(line);
+                    break;
+                case 14:
+                    custom_gui_style.WindowRounding = std::stof(line);
+                    break;
+                case 15:
+                    custom_gui_style.ChildRounding = std::stof(line);
+                    break;
+                case 16:
+                    custom_gui_style.FrameRounding = std::stof(line);
+                    break;
+                case 17:
+                    custom_gui_style.PopupRounding = std::stof(line);
+                    break;
+                case 18:
+                    custom_gui_style.ScrollbarRounding = std::stof(line);
+                    break;
+                case 19:
+                    custom_gui_style.GrabRounding = std::stof(line);
+                    break;
+                case 20:
+                    custom_gui_style.LogSliderDeadzone = std::stof(line);
+                    break;
+                case 21:
+                    custom_gui_style.TabRounding = std::stof(line);
+                    break;
+                case 23:
+                    custom_gui_style.WindowMenuButtonPosition = std::stof(line);
+                    break;
+                case 24:
+                    custom_gui_style.ColorButtonPosition = std::stof(line);
+                    break;
+                }
+
+                fileindex++;
 
             }
-           r_file.close();
+            r_file.close();
         }
     }
     ImGui::SameLine();
@@ -301,13 +412,13 @@ void color_editor()
         {
             ImGui::LogToClipboard();
 
-            ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;");
+            ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;\n");
             for (auto i = 0; i < ImGuiCol_COUNT; i++)
             {
                 const auto& col = custom_gui_style.Colors[i];
                 const auto* name = ImGui::GetStyleColorName(i);
                 if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
-                    ImGui::LogText("colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);",
+                    ImGui::LogText("colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);\n",
                         name, 23 - static_cast<int>(strlen(name)), "", col.x, col.y, col.z, col.w);
             }
             ImGui::LogFinish();
@@ -797,7 +908,7 @@ void Gui_builder::mainform_draw(HWND wnd)
 
     ImGui::SameLine();
 
-    ImGui::Checkbox("Color editor", &color);
+    ImGui::Checkbox("Editor", &color);
     if (color)
         color_editor();
 
@@ -1462,12 +1573,12 @@ void Gui_builder::show_child_propriedade(child_bar& child)
     auto* name = const_cast<char*>(child.a.name.c_str());
     ImGui::InputText("Name", name, 100);
     ImGui::Checkbox("Borda", &child.border);
-    float height = child.size.x;
-    float width = child.size.y;
-    ImGui::InputFloat("height", &height, 1, 1);
+    float width = child.size.x;
+    float height = child.size.y;
     ImGui::InputFloat("width", &width, 1, 1);
+    ImGui::InputFloat("height", &width, 1, 1);
 
-    child.size = { height,width };
+    child.size = { width,height };
     int father = child.a.form_id;
     ImGui::InputInt("ID Form PAI", &father, 1, 10);
     child.a.form_id = father;
