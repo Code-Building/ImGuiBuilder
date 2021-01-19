@@ -1,0 +1,17 @@
+
+shadowy/examples/.vs/imgui_examples/v16/.suo
+*.db
+*.ipch
+*.bat
+*.bat
+shadowy/Main/.vs/example_glfw_opengl3/v16/.suo
+*.db-shm
+*.db-wal
+*.opendb
+*.ilk
+*.log
+*.recipe
+*.exe
+*.pdb
+*.tlog
+*.obj

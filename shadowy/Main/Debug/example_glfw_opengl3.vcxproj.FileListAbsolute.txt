@@ -1,0 +1,2 @@
+C:\Users\shadowy\Documents\GitHub\Gui_builder\shadowy\Main\Debug\example_glfw_opengl3.exe
+C:\Users\shadowy\Documents\GitHub\Gui_builder\shadowy\Main\Debug\example_glfw_opengl3.pdb
