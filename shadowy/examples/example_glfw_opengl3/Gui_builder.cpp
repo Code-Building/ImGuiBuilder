@@ -1,6 +1,7 @@
 #include "Gui_builder.h"
 
-ImVec4 CustomColor[ImGuiCol_COUNT];
+
+ImGuiStyle custom_gui_style;
 
 bool button_ok = false;
 int file_menu = 0;
@@ -22,46 +23,6 @@ indentification_basic radio;
 indentification_basic lbl;
 child_bar child;
 
-std::vector<std::string> split(const std::string& s, char delimiter)
-{
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter))
-    {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
-void PushAllColorsDark(ImGuiStyle dark)
-{
-    int i = 0;
-    for (const auto color : dark.Colors)
-    {
-        ImGui::PushStyleColor(static_cast<ImGuiCol_>(i), color);
-        ++i;
-    }
-}
-
-//void PopAllColorsDark()
-//{
-//	ImGui::PopStyleColor(ImGuiCol_COUNT);
-//}
-
-// any way... future...
-void PushAllColorsCustom()
-{
-    for (int i = 0; i < ImGuiCol_COUNT; i++)
-    {
-        ImGui::PushStyleColor(static_cast<ImGuiCol_>(i), CustomColor[i]);
-    }
-}
-
-void PopAllColorsCustom()
-{
-    ImGui::PopStyleColor(ImGuiCol_COUNT);
-}
 
 void ToggleButton(const char* str_id, bool* v)
 {
@@ -84,15 +45,253 @@ void ToggleButton(const char* str_id, bool* v)
     draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
 }
 
+
+std::vector<std::string> split(const std::string& s, char delimiter)
+{
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter))
+    {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+void PushAllColorsDark(ImGuiStyle dark)
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    for (int i = 0; i < ImGuiCol_COUNT; i++)
+    {
+        ImGui::PushStyleColor(static_cast<ImGuiCol_>(i), dark.Colors[i]);
+    }
+    //Padding
+    style.WindowPadding = dark.WindowPadding;
+    style.FramePadding = dark.FramePadding;
+    style.CellPadding = dark.CellPadding;
+    style.ItemSpacing = dark.ItemSpacing;
+    style.ItemInnerSpacing = dark.ItemInnerSpacing;
+    style.TouchExtraPadding = dark.TouchExtraPadding;
+    style.IndentSpacing = dark.IndentSpacing;
+    style.ScrollbarSize = dark.ScrollbarSize;
+    style.GrabMinSize = dark.GrabMinSize;
+    style.WindowBorderSize = dark.WindowBorderSize;
+    style.ChildBorderSize = dark.ChildBorderSize;
+    style.PopupBorderSize = dark.PopupBorderSize;
+    style.FrameBorderSize = dark.FrameBorderSize;
+    style.TabBorderSize = dark.TabBorderSize;
+
+    //Rounding
+    style.WindowRounding = dark.WindowRounding;
+    style.ChildRounding = dark.ChildRounding;
+    style.FrameRounding = dark.FrameRounding;
+    style.PopupRounding = dark.PopupRounding;
+    style.ScrollbarRounding = dark.ScrollbarRounding;
+    style.GrabRounding = dark.GrabRounding;
+    style.LogSliderDeadzone = dark.LogSliderDeadzone;
+    style.TabRounding = dark.TabRounding;
+
+    //Position
+    style.WindowTitleAlign = dark.WindowTitleAlign;
+    style.WindowMenuButtonPosition = dark.WindowMenuButtonPosition;
+    style.ColorButtonPosition = dark.ColorButtonPosition;
+    style.ButtonTextAlign = dark.ButtonTextAlign;
+    style.SelectableTextAlign = dark.SelectableTextAlign;
+
+    //NANI???
+    style.DisplaySafeAreaPadding = dark.DisplaySafeAreaPadding;
+}
+
+void PushAllColorsCustom()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    //style.Colors = custom_gui_style.Colors;
+
+    for (int i = 0; i < ImGuiCol_COUNT; i++)
+    {
+        ImGui::PushStyleColor(static_cast<ImGuiCol_>(i), custom_gui_style.Colors[i]);
+    }
+    //Padding
+    style.WindowPadding = custom_gui_style.WindowPadding;
+    style.FramePadding = custom_gui_style.FramePadding;
+    style.CellPadding = custom_gui_style.CellPadding;
+    style.ItemSpacing = custom_gui_style.ItemSpacing;
+    style.ItemInnerSpacing = custom_gui_style.ItemInnerSpacing;
+    style.TouchExtraPadding = custom_gui_style.TouchExtraPadding;
+    style.IndentSpacing = custom_gui_style.IndentSpacing;
+    style.ScrollbarSize = custom_gui_style.ScrollbarSize;
+    style.GrabMinSize = custom_gui_style.GrabMinSize;
+    style.WindowBorderSize = custom_gui_style.WindowBorderSize;
+    style.ChildBorderSize = custom_gui_style.ChildBorderSize;
+    style.PopupBorderSize = custom_gui_style.PopupBorderSize;
+    style.FrameBorderSize = custom_gui_style.FrameBorderSize;
+    style.TabBorderSize = custom_gui_style.TabBorderSize;
+
+    //Rounding
+    style.WindowRounding = custom_gui_style.WindowRounding;
+    style.ChildRounding = custom_gui_style.ChildRounding;
+    style.FrameRounding = custom_gui_style.FrameRounding;
+    style.PopupRounding = custom_gui_style.PopupRounding;
+    style.ScrollbarRounding = custom_gui_style.ScrollbarRounding;
+    style.GrabRounding = custom_gui_style.GrabRounding;
+    style.LogSliderDeadzone = custom_gui_style.LogSliderDeadzone;
+    style.TabRounding = custom_gui_style.TabRounding;
+
+    //Position
+    style.WindowTitleAlign = custom_gui_style.WindowTitleAlign;
+    style.WindowMenuButtonPosition = custom_gui_style.WindowMenuButtonPosition;
+    style.ColorButtonPosition = custom_gui_style.ColorButtonPosition;
+    style.ButtonTextAlign = custom_gui_style.ButtonTextAlign;
+    style.SelectableTextAlign = custom_gui_style.SelectableTextAlign;
+
+    //NANI???
+    style.DisplaySafeAreaPadding = custom_gui_style.DisplaySafeAreaPadding;
+
+
+}
+
+void PopAllColorsCustom()
+{
+    ImGui::PopStyleColor(ImGuiCol_COUNT);
+}
+
+
+
+std::string style = "Custom.style";
+void window_flag(ImGuiStyle &custom_gui_style)
+{
+    //custom_gui_style = ImGui::GetStyle(); //custom_gui_style
+    ImGui::Begin("WINDOW");
+    if(ImGui::Button("LOAD"))
+    {
+        std::ifstream r_file(style);
+        std::string line;
+        if(r_file.is_open())
+        {
+            while(!r_file.eof())
+            {
+            std::getline(r_file, line);
+            auto b_line = split(line, ',');
+
+            }
+           r_file.close();
+        }
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("SAVE"))
+    {
+        std::ofstream f_save;
+        f_save.open(style);
+        if(f_save.is_open())
+        {
+            //Padding
+            f_save << custom_gui_style.WindowPadding.x << "," << custom_gui_style.WindowPadding.y << "\n";
+            f_save << custom_gui_style.FramePadding.x << "," << custom_gui_style.FramePadding.y   << "\n";
+            f_save << custom_gui_style.CellPadding.x << "," << custom_gui_style.CellPadding.y     << "\n";
+            f_save << custom_gui_style.ItemSpacing.x << "," << custom_gui_style.ItemSpacing.y     << "\n";
+            f_save << custom_gui_style.ItemInnerSpacing.x << "," << custom_gui_style.ItemInnerSpacing.y << "\n";
+            f_save << custom_gui_style.TouchExtraPadding.x << "," << custom_gui_style.TouchExtraPadding.y << "\n";
+            f_save << custom_gui_style.IndentSpacing << "\n";
+            f_save << custom_gui_style.ScrollbarSize << "\n";
+            f_save << custom_gui_style.GrabMinSize << "\n";
+            f_save << custom_gui_style.WindowBorderSize << "\n";
+            f_save << custom_gui_style.ChildBorderSize << "\n";
+            f_save << custom_gui_style.PopupBorderSize << "\n";
+            f_save << custom_gui_style.FrameBorderSize << "\n";
+            f_save << custom_gui_style.TabBorderSize << "\n";
+
+            //Rounding
+            f_save << custom_gui_style.WindowRounding << "\n";
+            f_save << custom_gui_style.ChildRounding << "\n";
+            f_save << custom_gui_style.FrameRounding << "\n";
+            f_save << custom_gui_style.PopupRounding << "\n";
+            f_save << custom_gui_style.ScrollbarRounding << "\n";
+            f_save << custom_gui_style.GrabRounding << "\n";
+            f_save << custom_gui_style.LogSliderDeadzone << "\n";
+            f_save << custom_gui_style.TabRounding << "\n";
+
+            //Position
+            f_save << custom_gui_style.WindowTitleAlign.x << "," << custom_gui_style.WindowTitleAlign.y<< "\n";
+            f_save << custom_gui_style.WindowMenuButtonPosition << "\n";
+            f_save << custom_gui_style.ColorButtonPosition << "\n";
+            f_save << custom_gui_style.ButtonTextAlign.x << "," << custom_gui_style.ButtonTextAlign.y << "\n";
+            f_save << custom_gui_style.SelectableTextAlign.x << "," << custom_gui_style.SelectableTextAlign.y << "\n";
+
+            //NANI???
+            f_save << custom_gui_style.DisplaySafeAreaPadding.x << "," <<  custom_gui_style.DisplaySafeAreaPadding.y  << "\n";
+
+
+            f_save.close();
+        }
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("EXPORT"))
+    {
+        
+    }
+    ImGui::InputText("##File_STYLE", const_cast<char*>(style.c_str()), 255, 0);
+
+
+    ImGui::Text("First");
+    if (ImGui::SliderFloat("FrameRounding", &custom_gui_style.FrameRounding, 0.0f, 12.0f, "%.0f"))
+        custom_gui_style.GrabRounding = custom_gui_style.FrameRounding; // Make GrabRounding always the same value as FrameRounding
+    { bool border = (custom_gui_style.WindowBorderSize > 0.0f); if (ImGui::Checkbox("WindowBorder", &border)) { custom_gui_style.WindowBorderSize = border ? 1.0f : 0.0f; } }
+    ImGui::SameLine();
+    { bool border = (custom_gui_style.FrameBorderSize > 0.0f);  if (ImGui::Checkbox("FrameBorder", &border)) { custom_gui_style.FrameBorderSize = border ? 1.0f : 0.0f; } }
+    ImGui::SameLine();
+    { bool border = (custom_gui_style.PopupBorderSize > 0.0f);  if (ImGui::Checkbox("PopupBorder", &border)) { custom_gui_style.PopupBorderSize = border ? 1.0f : 0.0f; } }
+
+
+    ImGui::Text("Main");
+      ImGui::SliderFloat2("WindowPadding", reinterpret_cast<float*>(&custom_gui_style.WindowPadding), 0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("FramePadding", reinterpret_cast<float*>(&custom_gui_style.FramePadding), 0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("CellPadding", reinterpret_cast<float*>(&custom_gui_style.CellPadding), 0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("ItemSpacing", reinterpret_cast<float*>(&custom_gui_style.ItemSpacing), 0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("ItemInnerSpacing", reinterpret_cast<float*>(&custom_gui_style.ItemInnerSpacing), 0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("TouchExtraPadding", reinterpret_cast<float*>(&custom_gui_style.TouchExtraPadding), 0.0f, 10.0f, "%.0f");
+      ImGui::SliderFloat("IndentSpacing", &custom_gui_style.IndentSpacing, 0.0f, 30.0f, "%.0f");
+      ImGui::SliderFloat("ScrollbarSize", &custom_gui_style.ScrollbarSize, 1.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat("GrabMinSize", &custom_gui_style.GrabMinSize, 1.0f, 20.0f, "%.0f");
+      ImGui::Text("Borders");
+      ImGui::SliderFloat("WindowBorderSize", &custom_gui_style.WindowBorderSize, 0.0f, 1.0f, "%.0f");
+      ImGui::SliderFloat("ChildBorderSize", &custom_gui_style.ChildBorderSize, 0.0f, 1.0f, "%.0f");
+      ImGui::SliderFloat("PopupBorderSize", &custom_gui_style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
+      ImGui::SliderFloat("FrameBorderSize", &custom_gui_style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
+      ImGui::SliderFloat("TabBorderSize", &custom_gui_style.TabBorderSize, 0.0f, 1.0f, "%.0f");
+      ImGui::Text("Rounding");
+      ImGui::SliderFloat("WindowRounding", &custom_gui_style.WindowRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("ChildRounding", &custom_gui_style.ChildRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("FrameRounding", &custom_gui_style.FrameRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("PopupRounding", &custom_gui_style.PopupRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("ScrollbarRounding", &custom_gui_style.ScrollbarRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("GrabRounding", &custom_gui_style.GrabRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("LogSliderDeadzone", &custom_gui_style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
+      ImGui::SliderFloat("TabRounding", &custom_gui_style.TabRounding, 0.0f, 12.0f, "%.0f");
+      ImGui::Text("Alignment");
+      ImGui::SliderFloat2("WindowTitleAlign", reinterpret_cast<float*>(&custom_gui_style.WindowTitleAlign), 0.0f, 1.0f, "%.2f");
+      auto window_menu_button_position = custom_gui_style.WindowMenuButtonPosition + 1;
+      if (ImGui::Combo("WindowMenuButtonPosition", static_cast<int*>(&window_menu_button_position), "None\0Left\0Right\0"))
+            custom_gui_style.WindowMenuButtonPosition = window_menu_button_position - 1;
+      ImGui::Combo("ColorButtonPosition", static_cast<int*>(&custom_gui_style.ColorButtonPosition), "Left\0Right\0");
+      ImGui::SliderFloat2("ButtonTextAlign", reinterpret_cast<float*>(&custom_gui_style.ButtonTextAlign), 0.0f, 1.0f, "%.2f");
+
+      ImGui::SliderFloat2("SelectableTextAlign", reinterpret_cast<float*>(&custom_gui_style.SelectableTextAlign), 0.0f, 1.0f, "%.2f");
+      ImGui::Text("Safe Area Padding");
+      ImGui::SliderFloat2("DisplaySafeAreaPadding", reinterpret_cast<float*>(&custom_gui_style.DisplaySafeAreaPadding), 0.0f, 30.0f, "%.0f");
+       
+   ImGui::End();
+}
+
 void color_editor()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
     static ImGuiStyle ref_saved_style;
-    ImGuiStyle* ref = &ref_saved_style;;
-
+    ImGuiStyle* ref = &ref_saved_style;
+    window_flag(custom_gui_style);
     ImGui::Begin("Gui Builder color export/import ", &color);
-
+   
     static int output_dest = 0;
     static bool output_only_modified = false;
 
@@ -105,7 +304,7 @@ void color_editor()
             ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;");
             for (auto i = 0; i < ImGuiCol_COUNT; i++)
             {
-                const auto& col = CustomColor[i];
+                const auto& col = custom_gui_style.Colors[i];
                 const auto* name = ImGui::GetStyleColorName(i);
                 if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
                     ImGui::LogText("colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);",
@@ -124,7 +323,7 @@ void color_editor()
 
         if (fileimport.is_open())
         {
-            for (auto& i : CustomColor)
+            for (auto& i : custom_gui_style.Colors)
             {
                 std::getline(fileimport, line);
                 auto colors = split(line, ',');
@@ -143,7 +342,7 @@ void color_editor()
         remove(theme.c_str());
 
         std::ofstream filewrite(theme);
-        for (const auto col : CustomColor)
+        for (const auto col : custom_gui_style.Colors)
             filewrite << col.x << "," << col.y << "," << col.z << "," << col.w << std::endl;
 
         filewrite.close();
@@ -181,11 +380,11 @@ void color_editor()
         if (!filter.PassFilter(name))
             continue;
         ImGui::PushID(i);
-        ImGui::ColorEdit4("##color", (float*)&CustomColor[i], ImGuiColorEditFlags_AlphaBar | alpha_flags);
-        if (memcmp(&CustomColor[i], &ref->Colors[i], sizeof(ImVec4)) != 0)
+        ImGui::ColorEdit4("##color", reinterpret_cast<float*>(&custom_gui_style.Colors[i]), ImGuiColorEditFlags_AlphaBar | alpha_flags);
+        if (memcmp(&custom_gui_style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0)
         {
-            ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Save")) { ref->Colors[i] = CustomColor[i]; }
-            ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Revert")) { CustomColor[i] = ref->Colors[i]; }
+            ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Save")) { ref->Colors[i] = custom_gui_style.Colors[i]; }
+            ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Revert")) { custom_gui_style.Colors[i] = ref->Colors[i]; }
         }
         ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
         ImGui::TextUnformatted(name);
@@ -202,7 +401,7 @@ Gui_builder::Gui_builder()
     id_ = 0; btn_id_ = 0;  txt_id_ = 0;
 
     for (int i = 0; i < ImGuiCol_COUNT; i++)
-        CustomColor[i] = dark_.Colors[i];
+        custom_gui_style.Colors[i] = dark_.Colors[i];
 }
 
 void Gui_builder::loading_builder(std::string& file)
