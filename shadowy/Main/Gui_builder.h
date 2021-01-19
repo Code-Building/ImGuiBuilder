@@ -12,6 +12,7 @@ struct indentification_btn
     ImVec2 size_item = { 0,0 };
     bool edition_pos = false;
     std::string name_item = "bnt id:";
+    ImVec2 size_obj_ac = { 0, 0 };
 };
 
 struct indentification_text
@@ -23,6 +24,7 @@ struct indentification_text
     bool edition = false;
     std::string name_text = "txt";
     std::string same_buffer = "";
+    ImVec2 size_obj_ac = { 0, 0 };
 };
 
 struct indentification_form
@@ -31,6 +33,7 @@ struct indentification_form
     ImVec2 size = { 200,100 };
     bool edtion = false;
     std::string name_form = "form";
+    ImVec2 pos = { 0, 0 };
 };
 
 struct indentification_basic
@@ -39,6 +42,7 @@ struct indentification_basic
     uint32_t id = 0;
     ImVec2 Pos_item = {};
     std::string name = "basic item";
+    ImVec2 size_obj_ac = { 0, 0 };
 };
 
 struct child_bar
@@ -55,6 +59,7 @@ struct identification_slider
     ImVec2 Pos_item = {};
     float wight = 0;
     std::string name = "sliderID";
+    ImVec2 size_obj_ac = { 0, 0 };
 };
 
 class Gui_builder

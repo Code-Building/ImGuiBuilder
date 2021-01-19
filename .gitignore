@@ -25,3 +25,6 @@ shadowy/.vs/imgui_examples/v16/.suo
 shadowy/.vs/CodeGui_builder/v16/.suo
 *.idb
 *.idb
+*.idb
+shadowy/Main/Debug/vc142.idb
+*.idb

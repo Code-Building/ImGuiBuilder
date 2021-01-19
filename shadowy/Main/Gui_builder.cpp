@@ -23,6 +23,9 @@ indentification_basic radio;
 indentification_basic lbl;
 child_bar child;
 
+ImVec2 FormPos, itemsize;
+
+
 
 void ToggleButton(const char* str_id, bool* v)
 {
@@ -276,10 +279,10 @@ void window_flag(ImGuiStyle &custom_gui_style)
                     custom_gui_style.TabRounding = std::stof(line);
                     break;
                 case 23:
-                    custom_gui_style.WindowMenuButtonPosition = std::stof(line);
+                    custom_gui_style.WindowMenuButtonPosition = static_cast<ImGuiDir_>(std::stoi(line));
                     break;
                 case 24:
-                    custom_gui_style.ColorButtonPosition = std::stof(line);
+                    custom_gui_style.ColorButtonPosition = static_cast<ImGuiDir_>(std::stoi(line));
                     break;
                 }
 
@@ -372,8 +375,8 @@ void window_flag(ImGuiStyle &custom_gui_style)
 
         // Position
         ImGui::LogText("style.WindowTitleAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.WindowTitleAlign.x, custom_gui_style.WindowTitleAlign.y);
-        ImGui::LogText("style.WindowMenuButtonPosition = %.0f\n", custom_gui_style.WindowMenuButtonPosition);
-        ImGui::LogText("style.ColorButtonPosition = %.0f\n", custom_gui_style.ColorButtonPosition);
+        ImGui::LogText("style.WindowMenuButtonPosition = %d\n", custom_gui_style.WindowMenuButtonPosition);
+        ImGui::LogText("style.ColorButtonPosition = %d\n", custom_gui_style.ColorButtonPosition);
         ImGui::LogText("style.ButtonTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.ButtonTextAlign.x, custom_gui_style.ButtonTextAlign.y);
         ImGui::LogText("style.SelectableTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.SelectableTextAlign.x, custom_gui_style.SelectableTextAlign.y);
 
@@ -1100,7 +1103,7 @@ void Gui_builder::show_form(HWND window)
         ImGui::SetNextWindowSize(forms[id_form].size);
 
         ImGui::Begin(forms[id_form].name_form.c_str());
-
+        forms[id_form].pos = ImGui::GetWindowPos();
         forms[id_form].size = ImGui::GetWindowSize();
 
         //Buttons
@@ -1110,6 +1113,8 @@ void Gui_builder::show_form(HWND window)
             {
                 ImGui::SetCursorPos(button.Pos_item);
                 ImGui::Button(button.name_item.c_str(), button.size_item);
+            	button.size_obj_ac = ImGui::GetItemRectSize();
+                
             }
         }
 
@@ -1121,6 +1126,8 @@ void Gui_builder::show_form(HWND window)
                 ImGui::SetCursorPos(text.Pos_item);
                 ImGui::PushItemWidth(text.wight);
                 ImGui::InputText(text.name_text.c_str(), const_cast<char*>(text.same_buffer.c_str()), 25);
+            	text.size_obj_ac = ImGui::GetItemRectSize();
+                //printf("ON RENDER %f %f \n", text.size_obj_ac.x, text.size_obj_ac.y);
             }
         }
 
@@ -1132,6 +1139,8 @@ void Gui_builder::show_form(HWND window)
                 ImGui::SetCursorPos(id_chk.Pos_item);
                 static bool vb;
                 ImGui::Checkbox(id_chk.name.c_str(), &vb);
+				id_chk.size_obj_ac = ImGui::GetItemRectSize();
+            	
             }
         }
 
@@ -1143,6 +1152,8 @@ void Gui_builder::show_form(HWND window)
                 ImGui::SetCursorPos(id_tg.Pos_item);
                 static bool vb;
                 ToggleButton(id_tg.name.c_str(), &vb);
+            	id_tg.size_obj_ac = ImGui::GetItemRectSize();
+      
             }
         }
         //Radio box
@@ -1153,6 +1164,7 @@ void Gui_builder::show_form(HWND window)
                 ImGui::SetCursorPos(Radio[i].Pos_item);
                 static int vi;
                 ImGui::RadioButton(Radio[i].name.c_str(), &vi, i);
+                Radio[i].size_obj_ac = ImGui::GetItemRectSize();
             }
         }
         //Slider Integer
@@ -1164,6 +1176,8 @@ void Gui_builder::show_form(HWND window)
                 static int vl;
                 ImGui::PushItemWidth(id_si.wight);
                 ImGui::SliderInt(id_si.name.c_str(), &vl, 0, 100);
+            	id_si.size_obj_ac = ImGui::GetItemRectSize();
+
             }
         }
 
@@ -1176,6 +1190,7 @@ void Gui_builder::show_form(HWND window)
                 static float vl;
                 ImGui::PushItemWidth(id_si.wight);
                 ImGui::SliderFloat(id_si.name.c_str(), &vl, 0, 100);
+                id_si.size_obj_ac = ImGui::GetItemRectSize();
             }
         }
         //label
@@ -1185,6 +1200,7 @@ void Gui_builder::show_form(HWND window)
             {
                 ImGui::SetCursorPos(lbl.Pos_item);
                 ImGui::Text(lbl.name.c_str());
+            	lbl.size_obj_ac = ImGui::GetItemRectSize();
             }
         }
 
@@ -1197,6 +1213,7 @@ void Gui_builder::show_form(HWND window)
                 ImGui::BeginChild(id_child.a.name.c_str(), id_child.size, id_child.border);
 
                 ImGui::EndChild();
+                //itemsize = ImGui::GetItemRectSize(); // not need
             }
         }
 
@@ -1212,24 +1229,39 @@ ImVec2 Move_item(ImVec2 Obj_pos, HWND window)
     if (old_pos.x == 0 && count_pos == 0)
         GetCursorPos(&old_pos);
 
-    else if (count_pos == 1)
-        SetCursorPos(Obj_pos.x, Obj_pos.y);
+    //else if (count_pos == 1)
+    //    SetCursorPos(Obj_pos.x, Obj_pos.y);
 
     POINT new_pos;
-    if (GetAsyncKeyState(VK_RBUTTON) && window == GetForegroundWindow())
+    
+    if (GetAsyncKeyState(VK_RBUTTON) && window == GetForegroundWindow()) //
     {
         if (count_pos >= 4)
         {
-            GetCursorPos(&new_pos);
-            Obj_pos.x = new_pos.x;
-            Obj_pos.y = new_pos.y;
+            //GetCursorPos(&new_pos);
+            //Obj_pos.x = new_pos.x;
+            //Obj_pos.y = new_pos.y;
+
+            POINT pos;
+            GetCursorPos(&pos);
+            ScreenToClient(GetForegroundWindow(), &pos);
+            pos.x -= FormPos.x + itemsize.x/2;
+            pos.y -= FormPos.y + itemsize.y/2;
+            printf_s("%.f %.f\n", itemsize.x, itemsize.y);
+            Obj_pos.x = static_cast<float>(pos.x);
+            Obj_pos.y = static_cast<float>(pos.y);
+        	
         }
         ++count_pos;
+
+
+
+    	
     }
     else
     {
         count_pos = 0;
-        SetCursorPos(old_pos.x, old_pos.y);
+        //SetCursorPos(old_pos.x, old_pos.y);
         old_pos = { 0,0 };
     }
     return Obj_pos;
@@ -1410,42 +1442,63 @@ void Gui_builder::show_propriets_geral()
 
     switch (identf)
     {
+    	
     case 1:
+        //itemsize = frm.size_obj_ac;
         show_propriedades_form(frm);
         forms[index] = frm;
         break;
 
     case 2:
+        itemsize = buttons[index].size_obj_ac;
+
+
+        //FormPos = forms[btn.Form_id-1].pos;
         show_propriedades_btn(btn);
         buttons[index] = btn;
         break;
 
     case 3:
+
+        itemsize = texts[index].size_obj_ac;
+     
         show_propriedades_txt(txt);
         texts[index] = txt;
         break;
     case 4:
+        itemsize = checkbox[index].size_obj_ac;
+
         show_propriedades_basic(chk);
         checkbox[index] = chk;
         break;
     case 5:
+        itemsize = toggle[index].size_obj_ac;
+
         show_propriedades_basic(tlg);
         toggle[index] = tlg;
         break;
 
     case 6:
+        itemsize = SliderI[index].size_obj_ac;
+
         show_propriedades_slider(slider_integer);
         SliderI[index] = slider_integer;
         break;
     case 7:
+        itemsize = SliderF[index].size_obj_ac;
+
         show_propriedades_slider(slider_float);
         SliderF[index] = slider_float;
         break;
     case 8:
+        itemsize = Radio[index].size_obj_ac;
+
         show_propriedades_basic(radio);
         Radio[index] = radio;
         break;
     case 9:
+        itemsize = label[index].size_obj_ac;
+
         show_propriedades_basic(lbl);
         label[index] = lbl;
         break;
@@ -1471,9 +1524,26 @@ void Gui_builder::show_propriedades_basic(indentification_basic& obj_basic)
     auto* name = const_cast<char*>(obj_basic.name.c_str());
     ImGui::InputText("Name", name, 100);
 
+    for (const auto& fmp : forms)
+    {
+        if (btn.Form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+
+	
     int father = obj_basic.form_id;
     ImGui::InputInt("ID Form PAI", &father, 1, 10);
     obj_basic.form_id = father;
+
+    for (const auto& fmp : forms)
+    {
+        if (obj_basic.form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+
+
+
+	
     obj_basic.Pos_item.x = v[0];
     obj_basic.Pos_item.y = v[1];
     obj_basic.Pos_item = Move_item(obj_basic.Pos_item, window);
@@ -1497,6 +1567,15 @@ void Gui_builder::show_propriedades_slider(identification_slider& slider)
     int father = slider.Form_id;
     ImGui::InputInt("ID Form PAI", &father, 1, 10);
     slider.Form_id = father;
+
+    for (const auto& fmp : forms)
+    {
+        if (slider.Form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+
+
+	
     slider.Pos_item.x = v[0];
     slider.Pos_item.y = v[1];
     slider.Pos_item = Move_item(slider.Pos_item, Gui_builder::window);
@@ -1526,6 +1605,13 @@ void Gui_builder::show_propriedades_btn(indentification_btn& item_button)
     ImVec2 size(width, height);
 
     item_button.Form_id = father;
+    for (const auto& fmp : forms)
+    {
+        if (item_button.Form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+
+	
     item_button.Pos_item.x = v[0];
     item_button.Pos_item.y = v[1];
     item_button.Pos_item = Move_item(item_button.Pos_item, window);
@@ -1553,11 +1639,18 @@ void Gui_builder::show_propriedades_txt(indentification_text& text)
     ImGui::InputInt("ID Form PAI", &father, 1, 10);
 
     text.Form_id = father;
+    for (const auto& fmp : forms)
+    {
+        if (text.Form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+
     text.Pos_item.x = v[0];
     text.Pos_item.y = v[1];
     text.Pos_item = Move_item(text.Pos_item, window);
     text.wight = width;
     text.name_text = name;
+   
     ImGui::End();
 }
 
@@ -1623,6 +1716,12 @@ void Gui_builder::show_child_propriedade(child_bar& child)
     int father = child.a.form_id;
     ImGui::InputInt("ID Form PAI", &father, 1, 10);
     child.a.form_id = father;
+    for (const auto& fmp : forms)
+    {
+        if (child.a.form_id == fmp.form_id)
+            FormPos = fmp.pos;
+    }
+	
     child.a.Pos_item.x = v[0];
     child.a.Pos_item.y = v[1];
     child.a.Pos_item = Move_item(child.a.Pos_item, window);
