@@ -1316,7 +1316,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = forms[ n ].name_form + ":" + std::to_string( forms[ n ].form_id );
-                frm = forms[ n ];
+                //frm = forms[ n ];
                 index = n;
                 identf = 1; // forms
             }
@@ -1332,14 +1332,14 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = buttons[ n ].name_item + ":" + std::to_string( buttons[ n ].btn_id );
-                btn = buttons[ n ];
+                //btn = buttons[ n ];
                 index = n;
                 identf = 2;// buttons
             }
 
             if ( is_selected )
             {
-                btn = buttons[n];
+                //btn = buttons[n];
 	            ImGui::SetItemDefaultFocus( );
             }
                 
@@ -1354,7 +1354,7 @@ void ImGuiBuilder::show_propriets_geral( )
                 index = n;
                 identf = 3;
             	// obsolete 
-                txt = texts[n];
+                //txt = texts[n];
 
             }
 
@@ -1370,7 +1370,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = checkbox[ n ].name + ":" + std::to_string( checkbox[ n ].id );
-                chk = checkbox[ n ];
+                //chk = checkbox[ n ];
                 index = n;
                 identf = 4;
             }
@@ -1385,7 +1385,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = toggle[ n ].name + ":" + std::to_string( toggle[ n ].id );
-                tlg = toggle[ n ];
+                //tlg = toggle[ n ];
                 index = n;
                 identf = 5;
             }
@@ -1400,7 +1400,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = SliderI[ n ].name + ":" + std::to_string( SliderI[ n ].slider_id );
-                slider_integer = SliderI[ n ];
+                //slider_integer = SliderI[ n ];
                 index = n;
                 identf = 6;
             }
@@ -1415,7 +1415,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = SliderF[ n ].name + ":" + std::to_string( SliderF[ n ].slider_id );
-                slider_float = SliderF[ n ];
+                //slider_float = SliderF[ n ];
                 index = n;
                 identf = 7;
             }
@@ -1430,7 +1430,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = Radio[ n ].name + ":" + std::to_string( Radio[ n ].id );
-                radio = Radio[ n ];
+                //radio = Radio[ n ];
                 index = n;
                 identf = 8;
             }
@@ -1446,7 +1446,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = childs[ n ].a.name + ":" + std::to_string( childs[ n ].a.id );
-                child = childs[ n ];
+                //child = childs[ n ];
                 index = n;
                 identf = 20;
             }
@@ -1461,7 +1461,7 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = label[ n ].name + ":" + std::to_string( label[ n ].id );
-                lbl = label[ n ];
+                //lbl = label[ n ];
                 index = n;
                 identf = 9;
             }
