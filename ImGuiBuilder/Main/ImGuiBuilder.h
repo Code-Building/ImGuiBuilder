@@ -57,6 +57,8 @@ struct child_bar
     indentification_basic a;
     bool border = false;
     ImVec2 size = {};
+    bool edt_pos = false;
+    bool hover = false;
 };
 
 struct identification_slider

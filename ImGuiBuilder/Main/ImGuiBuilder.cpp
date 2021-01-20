@@ -24,7 +24,7 @@ indentification_basic lbl;
 child_bar child;
 
 ImVec2 FormPos, itemsize;
-bool hover_obj;
+bool moving_obj = false;
 
 
 
@@ -1104,11 +1104,31 @@ void ImGuiBuilder::show_form( HWND window )
             continue;
         }
 
-        ImGui::SetNextWindowSize( forms[ id_form ].size );
+        ImGui::SetNextWindowSize(forms[id_form].size);
+        if(!moving_obj)
+			ImGui::Begin( forms[ id_form ].name_form.c_str(), nullptr, 0);
+        else
+            ImGui::Begin(forms[id_form].name_form.c_str(),nullptr, ImGuiWindowFlags_NoMove);
 
-        ImGui::Begin( forms[ id_form ].name_form.c_str( ) );
-        forms[ id_form ].pos = ImGui::GetWindowPos( );
-        forms[ id_form ].size = ImGui::GetWindowSize( );
+    	
+        forms[id_form].size = ImGui::GetWindowSize();
+        forms[id_form].pos = ImGui::GetWindowPos();
+ 
+
+        //Child
+        for (auto& id_child : childs)
+        {
+            if (id_child.a.form_id == forms[id_form].form_id)
+            {
+                ImGui::SetCursorPos(id_child.a.Pos_item);
+                ImGui::BeginChild(id_child.a.name.c_str(), id_child.size, id_child.border, ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+                ImGui::EndChild();
+                id_child.hover = ImGui::IsItemHovered();
+                //itemsize = ImGui::GetItemRectSize(); // not need
+            }
+        }
+
 
         //Buttons
         for ( auto& button : buttons )
@@ -1216,22 +1236,9 @@ void ImGuiBuilder::show_form( HWND window )
             }
         }
 
-        //Child
-        for ( auto& id_child : childs )
-        {
-            if ( id_child.a.form_id == forms[ id_form ].form_id )
-            {
-                ImGui::SetCursorPos( id_child.a.Pos_item );
-                ImGui::BeginChild( id_child.a.name.c_str( ), id_child.size, id_child.border );
-
-                ImGui::EndChild( );
-                //id_child.hover = ImGui::IsItemHovered();
-                //itemsize = ImGui::GetItemRectSize(); // not need
-            }
-        }
-
         ImGui::End( );
     }
+    
 }
 
 //Move obj with cursor
@@ -1247,9 +1254,10 @@ ImVec2 Move_item( ImVec2 Obj_pos, HWND window, bool& continue_edt )
 
     POINT new_pos;
 
+    moving_obj = true;
     if ( GetAsyncKeyState( VK_LBUTTON ) && window == GetForegroundWindow( ) && continue_edt) //
     {
-        if ( count_pos >= 4 )
+        if ( count_pos >=5 ) // click and secure for 5 frames 30x5 ms
         {
             //GetCursorPos(&new_pos);
             //Obj_pos.x = new_pos.x;
@@ -1264,11 +1272,13 @@ ImVec2 Move_item( ImVec2 Obj_pos, HWND window, bool& continue_edt )
             Obj_pos.y = static_cast<float>( pos.y );
             continue_edt = true;
 
+
         }
         ++count_pos;
     }
     else
     {
+        moving_obj = false;
         continue_edt = false;
         count_pos = 0;
         //SetCursorPos(old_pos.x, old_pos.y);
@@ -1286,7 +1296,7 @@ void ImGuiBuilder::show_propriets_geral( )
 {
     PushAllColorsDark( dark_ );
     ImGui::SetNextWindowPos( { 0, 100 } );
-    ImGui::SetNextWindowSize( { 200, 700 - 100 } );
+    ImGui::SetNextWindowSize( { 300, 700 - 100 } );
     ImGui::Begin( "PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus );
 
     if ( ImGui::BeginCombo( "##itens", current_item.c_str( ) ) )
@@ -1468,8 +1478,8 @@ void ImGuiBuilder::show_propriets_geral( )
     {
 
     case 1:
-        show_propriedades_form( frm );
-        forms[ index ] = frm;
+        show_propriedades_form(forms[index]);
+        // forms[index] = frm;
         break;
 
     case 2:
@@ -1523,6 +1533,7 @@ void ImGuiBuilder::show_propriets_geral( )
         //label[ index ] = lbl;
         break;
     case 20:
+        itemsize = childs[index].size;
         show_child_propriedade(childs[index]);
         //childs[ index ] = child;
         break;
@@ -1709,7 +1720,7 @@ void ImGuiBuilder::show_propriedades_form( indentification_form& form )
         strcpy( name, " " );
     }
 
-
+  
 
 
     ImGui::InputFloat( "width", &form.size.x, 1, 1 );
@@ -1744,9 +1755,9 @@ void ImGuiBuilder::show_child_propriedade( child_bar& child )
     ImGui::InputText( "Name", name, 100 );
     ImGui::Checkbox( "Borda", &child.border );
     auto width = child.size.x;
-    const auto height = child.size.y;
+    auto height = child.size.y;
     ImGui::InputFloat( "width", &width, 1, 1 );
-    ImGui::InputFloat( "height", &width, 1, 1 );
+    ImGui::InputFloat( "height", &height, 1, 1 );
 
     child.size = { width, height };
     int father = child.a.form_id;
@@ -1760,7 +1771,10 @@ void ImGuiBuilder::show_child_propriedade( child_bar& child )
 
     child.a.Pos_item.x = v[ 0 ];
     child.a.Pos_item.y = v[ 1 ];
-    child.a.Pos_item = Move_item( child.a.Pos_item, window );
+
+    if (child.hover)
+        child.edt_pos = true;
+    child.a.Pos_item = Move_item( child.a.Pos_item, window, child.edt_pos);
 
     child.a.name = name;
     ImGui::End( );
