@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Main">
+      <UniqueIdentifier>{df6926c5-b382-451e-8682-2b7338932371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{20b90ce4-7fcb-4731-b9a0-075f875de82d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\ImGuiGL">
+      <UniqueIdentifier>{f18ab499-84e1-499f-8eff-9754361e0e52}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ImGui\gl3w">
+      <UniqueIdentifier>{2cb2e5f1-4096-4031-8de3-93613b02d294}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ImGui\libs\gl3w\GL\gl3w.c">
+      <Filter>ImGui\gl3w</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\opengl\imgui_impl_glfw.cpp">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\opengl\imgui_impl_opengl2.cpp">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\opengl\imgui_impl_opengl3.cpp">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\ImGuiBuilder.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImGui\libs\gl3w\GL\gl3w.h">
+      <Filter>ImGui\gl3w</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\libs\gl3w\GL\glcorearb.h">
+      <Filter>ImGui\gl3w</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\opengl\imgui_impl_glfw.h">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\opengl\imgui_impl_opengl2.h">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\opengl\imgui_impl_opengl3.h">
+      <Filter>ImGui\ImGuiGL</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\ImGuiBuilder.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\shared.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

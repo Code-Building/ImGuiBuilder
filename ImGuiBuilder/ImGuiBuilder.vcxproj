@@ -68,30 +68,38 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>ImGui\libs\glfw\lib-vc2010-32;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>ImGui\libs\glfw\lib-vc2010-64;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>ImGui\libs\glfw\lib-vc2010-32;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>ImGui\libs\glfw\lib-vc2010-64;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\ImGui;..\ImGui\backends;..\ImGui\libs\glfw\include;..\ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;ImGui;ImGui\libs\glfw\include;ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -106,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\ImGui;..\ImGui\backends;..\ImGui\libs\glfw\include;..\ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;ImGui;ImGui\libs\glfw\include;ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -123,7 +131,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..;..\ImGui;..\ImGui\backends;..\ImGui\libs\glfw\include;..\ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;ImGui;ImGui\libs\glfw\include;ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -144,7 +152,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..;..\ImGui;..\ImGui\backends;..\ImGui\libs\glfw\include;..\ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;ImGui;ImGui\libs\glfw\include;ImGui\libs\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -160,34 +168,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ImGui\imgui.cpp" />
-    <ClCompile Include="..\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="..\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="..\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="..\ImGui\libs\gl3w\GL\gl3w.c" />
-    <ClCompile Include="..\ImGui\opengl\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\ImGui\opengl\imgui_impl_opengl2.cpp" />
-    <ClCompile Include="..\ImGui\opengl\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="ImGuiBuilder.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ImGui\imgui.cpp" />
+    <ClCompile Include="ImGui\imgui_draw.cpp" />
+    <ClCompile Include="ImGui\imgui_tables.cpp" />
+    <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="ImGui\libs\gl3w\GL\gl3w.c" />
+    <ClCompile Include="ImGui\opengl\imgui_impl_glfw.cpp" />
+    <ClCompile Include="ImGui\opengl\imgui_impl_opengl2.cpp" />
+    <ClCompile Include="ImGui\opengl\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Main\ImGuiBuilder.cpp" />
+    <ClCompile Include="Main\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ImGui\imconfig.h" />
-    <ClInclude Include="..\ImGui\imgui.h" />
-    <ClInclude Include="..\ImGui\imgui_internal.h" />
-    <ClInclude Include="..\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="..\ImGui\imstb_textedit.h" />
-    <ClInclude Include="..\ImGui\imstb_truetype.h" />
-    <ClInclude Include="..\ImGui\libs\gl3w\GL\gl3w.h" />
-    <ClInclude Include="..\ImGui\libs\gl3w\GL\glcorearb.h" />
-    <ClInclude Include="..\ImGui\opengl\imgui_impl_glfw.h" />
-    <ClInclude Include="..\ImGui\opengl\imgui_impl_opengl2.h" />
-    <ClInclude Include="..\ImGui\opengl\imgui_impl_opengl3.h" />
-    <ClInclude Include="ImGuiBuilder.h" />
-    <ClInclude Include="shared.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\ImGui\LICENSE.txt" />
+    <ClInclude Include="ImGui\imconfig.h" />
+    <ClInclude Include="ImGui\imgui.h" />
+    <ClInclude Include="ImGui\imgui_internal.h" />
+    <ClInclude Include="ImGui\imstb_rectpack.h" />
+    <ClInclude Include="ImGui\imstb_textedit.h" />
+    <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="ImGui\libs\gl3w\GL\gl3w.h" />
+    <ClInclude Include="ImGui\libs\gl3w\GL\glcorearb.h" />
+    <ClInclude Include="ImGui\opengl\imgui_impl_glfw.h" />
+    <ClInclude Include="ImGui\opengl\imgui_impl_opengl2.h" />
+    <ClInclude Include="ImGui\opengl\imgui_impl_opengl3.h" />
+    <ClInclude Include="Main\ImGuiBuilder.h" />
+    <ClInclude Include="Main\shared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
