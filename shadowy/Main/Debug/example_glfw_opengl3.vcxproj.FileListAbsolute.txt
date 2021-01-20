@@ -1,2 +1,0 @@
-C:\Users\shadowy\Documents\GitHub\Gui_builder\shadowy\Main\Debug\Gui_Builder.exe
-C:\Users\shadowy\Documents\GitHub\Gui_builder\shadowy\Main\Debug\Gui_Builder.pdb
