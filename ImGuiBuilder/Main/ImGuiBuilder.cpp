@@ -24,6 +24,7 @@ indentification_basic lbl;
 child_bar child;
 
 ImVec2 FormPos, itemsize;
+bool hover_obj;
 
 
 
@@ -1098,7 +1099,7 @@ void ImGuiBuilder::show_form( HWND window )
 
     for ( size_t id_form = 0; id_form < forms.size( ); id_form++ )
     {
-        if ( forms[ id_form ].edtion )
+        if ( forms[ id_form ].edition )
         {
             continue;
         }
@@ -1117,6 +1118,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::SetCursorPos( button.Pos_item );
                 ImGui::Button( button.name_item.c_str( ), button.size_item );
                 button.size_obj_ac = ImGui::GetItemRectSize( );
+                button.hover = ImGui::IsItemHovered();
 
             }
         }
@@ -1130,6 +1132,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::PushItemWidth( text.wight );
                 ImGui::InputText( text.name_text.c_str( ), const_cast<char*>( text.same_buffer.c_str( ) ), 25 );
                 text.size_obj_ac = ImGui::GetItemRectSize( );
+                text.hover = ImGui::IsItemHovered();
                 //printf("ON RENDER %f %f \n", text.size_obj_ac.x, text.size_obj_ac.y);
             }
         }
@@ -1143,6 +1146,7 @@ void ImGuiBuilder::show_form( HWND window )
                 static bool vb;
                 ImGui::Checkbox( id_chk.name.c_str( ), &vb );
                 id_chk.size_obj_ac = ImGui::GetItemRectSize( );
+                id_chk.hover = ImGui::IsItemHovered();
 
             }
         }
@@ -1156,6 +1160,7 @@ void ImGuiBuilder::show_form( HWND window )
                 static bool vb;
                 ToggleButton( id_tg.name.c_str( ), &vb );
                 id_tg.size_obj_ac = ImGui::GetItemRectSize( );
+                id_tg.hover = ImGui::IsItemHovered();
 
             }
         }
@@ -1168,6 +1173,7 @@ void ImGuiBuilder::show_form( HWND window )
                 static int vi;
                 ImGui::RadioButton( Radio[ i ].name.c_str( ), &vi, i );
                 Radio[ i ].size_obj_ac = ImGui::GetItemRectSize( );
+                Radio[i].hover = ImGui::IsItemHovered();
             }
         }
         //Slider Integer
@@ -1180,6 +1186,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::PushItemWidth( id_si.wight );
                 ImGui::SliderInt( id_si.name.c_str( ), &vl, 0, 100 );
                 id_si.size_obj_ac = ImGui::GetItemRectSize( );
+                id_si.hover = ImGui::IsItemHovered();
 
             }
         }
@@ -1194,6 +1201,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::PushItemWidth( id_si.wight );
                 ImGui::SliderFloat( id_si.name.c_str( ), &vl, 0, 100 );
                 id_si.size_obj_ac = ImGui::GetItemRectSize( );
+                id_si.hover = ImGui::IsItemHovered();
             }
         }
         //label
@@ -1204,6 +1212,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::SetCursorPos( lbl.Pos_item );
                 ImGui::Text( lbl.name.c_str( ) );
                 lbl.size_obj_ac = ImGui::GetItemRectSize( );
+                lbl.hover = ImGui::IsItemHovered();
             }
         }
 
@@ -1216,6 +1225,7 @@ void ImGuiBuilder::show_form( HWND window )
                 ImGui::BeginChild( id_child.a.name.c_str( ), id_child.size, id_child.border );
 
                 ImGui::EndChild( );
+                //id_child.hover = ImGui::IsItemHovered();
                 //itemsize = ImGui::GetItemRectSize(); // not need
             }
         }
@@ -1227,7 +1237,7 @@ void ImGuiBuilder::show_form( HWND window )
 //Move obj with cursor
 POINT old_pos = { 0, 0 };
 int count_pos = 0;
-ImVec2 Move_item( ImVec2 Obj_pos, HWND window )
+ImVec2 Move_item( ImVec2 Obj_pos, HWND window, bool& continue_edt )
 {
     if ( old_pos.x == 0 && count_pos == 0 )
         GetCursorPos( &old_pos );
@@ -1237,37 +1247,39 @@ ImVec2 Move_item( ImVec2 Obj_pos, HWND window )
 
     POINT new_pos;
 
-    if ( GetAsyncKeyState( VK_RBUTTON ) && window == GetForegroundWindow( ) ) //
+    if ( GetAsyncKeyState( VK_LBUTTON ) && window == GetForegroundWindow( ) && continue_edt) //
     {
         if ( count_pos >= 4 )
         {
             //GetCursorPos(&new_pos);
             //Obj_pos.x = new_pos.x;
             //Obj_pos.y = new_pos.y;
-
             POINT pos;
             GetCursorPos( &pos );
             ScreenToClient( GetForegroundWindow( ), &pos );
             pos.x -= FormPos.x + itemsize.x / 2;
             pos.y -= FormPos.y + itemsize.y / 2;
-            printf_s( "%.f %.f\n", itemsize.x, itemsize.y );
+           // printf_s( "%.f %.f\n", itemsize.x, itemsize.y );
             Obj_pos.x = static_cast<float>( pos.x );
             Obj_pos.y = static_cast<float>( pos.y );
+            continue_edt = true;
 
         }
         ++count_pos;
-
-
-
-
     }
     else
     {
+        continue_edt = false;
         count_pos = 0;
         //SetCursorPos(old_pos.x, old_pos.y);
         old_pos = { 0, 0 };
     }
     return Obj_pos;
+}
+ImVec2 Move_item(ImVec2 Obj_pos, HWND window)
+{
+   auto hover_emulation = true;
+   return  Move_item(Obj_pos, window, hover_emulation);
 }
 
 void ImGuiBuilder::show_propriets_geral( )
@@ -1281,9 +1293,9 @@ void ImGuiBuilder::show_propriets_geral( )
     {
         for ( size_t n = 0; n < forms.size( ); n++ )
         {
-            if ( forms[ n ].edtion )
+            if ( forms[ n ].edition )
             {
-                forms[ n ].edtion = false;
+                forms[ n ].edition = false;
                 forms.erase( forms.begin( ) + n );
 
                 break;
@@ -1305,6 +1317,7 @@ void ImGuiBuilder::show_propriets_geral( )
         for ( size_t n = 0; n < buttons.size( ); n++ )
         {
 	        auto item = buttons[ n ].name_item + ":" + std::to_string( buttons[ n ].btn_id );
+            
             const auto is_selected = ( current_item == item );
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
@@ -1315,7 +1328,11 @@ void ImGuiBuilder::show_propriets_geral( )
             }
 
             if ( is_selected )
-                ImGui::SetItemDefaultFocus( );
+            {
+                btn = buttons[n];
+	            ImGui::SetItemDefaultFocus( );
+            }
+                
         }
         for ( size_t n = 0; n < texts.size( ); n++ )
         {
@@ -1324,13 +1341,17 @@ void ImGuiBuilder::show_propriets_geral( )
             if ( ImGui::Selectable( item.c_str( ), is_selected ) )
             {
                 current_item = texts[ n ].name_text + ":" + std::to_string( texts[ n ].text_id );
-                txt = texts[ n ];
                 index = n;
                 identf = 3;
+            	// obsolete 
+                txt = texts[n];
+
             }
 
             if ( is_selected )
-                ImGui::SetItemDefaultFocus( );
+                ImGui::SetItemDefaultFocus();
+            
+               
         }
         for ( size_t n = 0; n < checkbox.size( ); n++ )
         {
@@ -1447,67 +1468,63 @@ void ImGuiBuilder::show_propriets_geral( )
     {
 
     case 1:
-        //itemsize = frm.size_obj_ac;
         show_propriedades_form( frm );
         forms[ index ] = frm;
         break;
 
     case 2:
-        itemsize = buttons[ index ].size_obj_ac;
-
-
+        itemsize = buttons[index].size_obj_ac;
+        //hover_obj = btn.hover;
         //FormPos = forms[btn.Form_id-1].pos;
-        show_propriedades_btn( btn );
-        buttons[ index ] = btn;
+        show_propriedades_btn(buttons[index]); // otimize frame per responce
+        //buttons[ index ] = btn;
         break;
 
     case 3:
 
         itemsize = texts[ index ].size_obj_ac;
-
-        show_propriedades_txt( txt );
-        texts[ index ] = txt;
+        show_propriedades_txt(texts[index]);
+        //texts[ index ] = txt;
         break;
     case 4:
         itemsize = checkbox[ index ].size_obj_ac;
 
-        show_propriedades_basic( chk );
-        checkbox[ index ] = chk;
+        show_propriedades_basic(checkbox[index]);
+        //checkbox[ index ] = chk;
         break;
     case 5:
         itemsize = toggle[ index ].size_obj_ac;
 
-        show_propriedades_basic( tlg );
-        toggle[ index ] = tlg;
+        show_propriedades_basic(toggle[index]);
+        //toggle[ index ] = tlg;
         break;
 
     case 6:
         itemsize = SliderI[ index ].size_obj_ac;
-
-        show_propriedades_slider( slider_integer );
-        SliderI[ index ] = slider_integer;
+        show_propriedades_slider(SliderI[index]);
+        // SliderI[index] = slider_integer;
         break;
     case 7:
         itemsize = SliderF[ index ].size_obj_ac;
 
-        show_propriedades_slider( slider_float );
-        SliderF[ index ] = slider_float;
+        show_propriedades_slider(SliderF[index]);
+        //SliderF[ index ] = slider_float;
         break;
     case 8:
         itemsize = Radio[ index ].size_obj_ac;
 
-        show_propriedades_basic( radio );
-        Radio[ index ] = radio;
+        show_propriedades_basic(Radio[index]);
+        //Radio[ index ] = radio;
         break;
     case 9:
         itemsize = label[ index ].size_obj_ac;
 
-        show_propriedades_basic( lbl );
-        label[ index ] = lbl;
+        show_propriedades_basic(label[index]);
+        //label[ index ] = lbl;
         break;
     case 20:
-        show_child_propriedade( child );
-        childs[ index ] = child;
+        show_child_propriedade(childs[index]);
+        //childs[ index ] = child;
         break;
 
     default:
@@ -1545,7 +1562,11 @@ void ImGuiBuilder::show_propriedades_basic( indentification_basic& obj_basic )
     }
     obj_basic.Pos_item.x = v[ 0 ];
     obj_basic.Pos_item.y = v[ 1 ];
-    obj_basic.Pos_item = Move_item( obj_basic.Pos_item, window );
+
+    if (obj_basic.hover)
+        obj_basic.edt_pos = true;
+	
+    obj_basic.Pos_item = Move_item( obj_basic.Pos_item, window, obj_basic.edt_pos);
     obj_basic.name = name;
     ImGui::End( );
 }
@@ -1577,7 +1598,10 @@ void ImGuiBuilder::show_propriedades_slider( identification_slider& slider )
 
     slider.Pos_item.x = v[ 0 ];
     slider.Pos_item.y = v[ 1 ];
-    slider.Pos_item = Move_item( slider.Pos_item, ImGuiBuilder::window );
+    if (slider.hover)
+        slider.edt_pos = true;
+	
+    slider.Pos_item = Move_item( slider.Pos_item, window, slider.edt_pos);
     slider.wight = width;
 
     slider.name = name;
@@ -1613,7 +1637,12 @@ void ImGuiBuilder::show_propriedades_btn( indentification_btn& item_button )
 
     item_button.Pos_item.x = v[ 0 ];
     item_button.Pos_item.y = v[ 1 ];
-    item_button.Pos_item = Move_item( item_button.Pos_item, window );
+	
+	if(item_button.hover)
+        item_button.edition_pos = true;
+	
+    item_button.Pos_item = Move_item(item_button.Pos_item, window, item_button.edition_pos);
+
     item_button.size_item = size;
     item_button.name_item = name;
 
@@ -1637,6 +1666,9 @@ void ImGuiBuilder::show_propriedades_txt( indentification_text& text )
     int father = text.Form_id;
     ImGui::InputInt( "ID Form PAI", &father, 1, 10 );
 
+	//ImGui::InputInt("Value", text.)
+
+	
     text.Form_id = father;
     for ( const auto& fmp : forms )
     {
@@ -1646,7 +1678,12 @@ void ImGuiBuilder::show_propriedades_txt( indentification_text& text )
 
     text.Pos_item.x = v[ 0 ];
     text.Pos_item.y = v[ 1 ];
-    text.Pos_item = Move_item( text.Pos_item, window );
+
+    if (text.hover)
+        text.edition = true;
+	
+	
+    text.Pos_item = Move_item( text.Pos_item, window, text.edition);
     text.wight = width;
     text.name_text = name;
 
@@ -1687,7 +1724,7 @@ void ImGuiBuilder::show_propriedades_form( indentification_form& form )
 
     if ( ImGui::Button( "APAGAR" ) )
     {
-        form.edtion = true;
+        form.edition = true;
         identf = 0;
         current_item = "";
     }
