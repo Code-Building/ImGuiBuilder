@@ -7,19 +7,20 @@ void color_editor();
 struct indentification_btn
 {
 	uint32_t Form_id = 0;
-	uint32_t btn_id = 0;
+	uint32_t id = 0;
 	ImVec2 Pos_item = { 0,0 };
 	ImVec2 size_item = { 0,0 };
 	bool edition_pos = false;
 	std::string name_item = "bnt id:";
 	ImVec2 size_obj_ac = { 0, 0 };
 	bool hover = false;
+	bool delete_me = false;
 };
 
 struct indentification_text
 {
 	uint32_t Form_id = 0;
-	uint32_t text_id = 0;
+	uint32_t id = 0;
 	ImVec2 Pos_item = {};
 	float wight = 0;
 	bool edition = false;
@@ -27,6 +28,7 @@ struct indentification_text
 	std::string same_buffer = "";
 	ImVec2 size_obj_ac = { 0, 0 };
 	bool hover = false;
+	bool delete_me = false;
 };
 
 struct indentification_form
@@ -38,6 +40,7 @@ struct indentification_form
 	ImVec2 pos = { 0, 0 };
 	bool edt_pos = false;
 	bool hover = false;
+	bool delete_me = false;
 };
 
 struct indentification_basic
@@ -49,6 +52,7 @@ struct indentification_basic
 	ImVec2 size_obj_ac = { 0, 0 };
 	bool edt_pos = false;
 	bool hover = false;
+	bool delete_me = false;
 };
 
 struct child_bar
@@ -58,18 +62,20 @@ struct child_bar
 	ImVec2 size = {};
 	bool edt_pos = false;
 	bool hover = false;
+
 };
 
 struct identification_slider
 {
 	uint32_t Form_id = 0;
-	uint32_t slider_id = 0;
+	uint32_t id = 0;
 	ImVec2 Pos_item = {};
 	float wight = 0;
 	std::string name = "sliderID";
 	ImVec2 size_obj_ac = { 0, 0 };
 	bool edt_pos = false;
 	bool hover = false;
+	bool delete_me = false;
 };
 
 class ImGuiBuilder
