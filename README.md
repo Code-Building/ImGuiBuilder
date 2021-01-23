@@ -8,7 +8,7 @@ Consiste em alguns elementos principais onde você consegue editor visualmente a
 	
 O **editor de cores** permite editar as cores referente as tabelas do imgui a exportação é feita pelo copy do sistema pode salvar e carregar edições de outras ou posteriores já feitas
 
-![imgui_capture_0008](https://imgur.com/vmcV3yL)
+![imgui_capture_0008](https://cdn.discordapp.com/attachments/729202164504854628/802426214979469322/vmcV3yL.gif)
 
 ## Exportar IMGUI
 Gerar código: Apos toda a criação visual, você pode gerar o arquivo .cpp para utilizar a edição que você fez
