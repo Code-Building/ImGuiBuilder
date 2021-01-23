@@ -2,27 +2,19 @@
 
 ImGuiStyle custom_gui_style;
 
+// function
 bool button_ok = false;
 int file_menu = 0;
-bool color = false;
+bool color_menu = false, style_menu = false;
 std::string file_manege = "File to save";
 std::string theme = "theme.col";
+std::string style = "Custom.style";
 
-// TYPE INDENTIFICATIONS
+// Proprity formulary
 std::string current_item;
-int identf = 0, index = 0;
-indentification_btn btn;
-indentification_form frm;
-indentification_text txt;
-indentification_basic chk;
-indentification_basic tlg;
-identification_slider slider_float;
-identification_slider slider_integer;
-indentification_basic radio;
-indentification_basic lbl;
-child_bar child;
-
-ImVec2 FormPos, itemsize;
+int index = 0, family = 0, grandchild = -1;
+int type = -1; // none type
+ImVec2 FormPos{}, itemsize{};
 bool moving_obj = false;
 
 void ToggleButton(const char* str_id, bool* v)
@@ -37,12 +29,14 @@ void ToggleButton(const char* str_id, bool* v)
 	if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))
 		*v = !*v;
 	ImU32 col_bg = 0;
+	//custom_gui_style.Colors[22].w, custom_gui_style.Colors[22].x, custom_gui_style.Colors[22].y, custom_gui_style.Colors[22].z
 	if (ImGui::IsItemHovered())
 		col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
 	else
 		col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
 
 	draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
+
 	draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
 }
 
@@ -154,11 +148,10 @@ void PopAllColorsCustom()
 	ImGui::PopStyleColor(ImGuiCol_COUNT);
 }
 
-std::string style = "Custom.style";
 void window_flag(ImGuiStyle& custom_gui_style)
 {
 	//custom_gui_style = ImGui::GetStyle(); //custom_gui_style
-	ImGui::Begin("Style Window Editor", &color);
+	ImGui::Begin("Style Window Editor", &style_menu);
 	if (ImGui::Button("LOAD"))
 	{
 		std::ifstream r_file(style);
@@ -435,11 +428,9 @@ void window_flag(ImGuiStyle& custom_gui_style)
 void color_editor()
 {
 	auto& style = ImGui::GetStyle();
-
 	static ImGuiStyle ref_saved_style;
 	auto* ref = &ref_saved_style;
-	window_flag(custom_gui_style);
-	ImGui::Begin("Gui Builder color export/import ", &color);
+	ImGui::Begin("Gui Builder color export/import ", &color_menu);
 
 	static auto output_only_modified = false;
 
@@ -499,13 +490,6 @@ void color_editor()
 	ImGui::SameLine();
 	ImGui::InputText("##THEME", const_cast<char*>(theme.c_str()), 100);
 
-	//ImGui::SetNextItemWidth(120);
-	//ImGui::Combo("##output_type", &output_dest, "To Clipboard\0");
-
-	// ImGui::SameLine();
-
-	// ImGui::Checkbox("Only Modified Colors", &output_only_modified);
-
 	static ImGuiTextFilter filter;
 	filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
 
@@ -537,15 +521,17 @@ void color_editor()
 
 	ImGui::End();
 }
+
 ImGuiBuilder::ImGuiBuilder()
 {
 	ImGui::StyleColorsDark(&dark_);
-	id_ = 0; btn_id_ = 0;  txt_id_ = 0;
-
 	for (auto i = 0; i < ImGuiCol_COUNT; i++)
 		custom_gui_style.Colors[i] = dark_.Colors[i];
-}
 
+	form_.clear();
+	obj_render_me.clear();
+}
+//LOAD
 void ImGuiBuilder::loading_builder(std::string& file)
 {
 	std::ifstream f_read(file);
@@ -554,189 +540,84 @@ void ImGuiBuilder::loading_builder(std::string& file)
 	{
 		std::string line;
 		auto menu = 0;
-		indentification_form form_load;
-		indentification_btn btn_load;
-		indentification_text text_load;
-		indentification_basic toggle_load, checkbox_load, radio_load;
-		identification_slider sliderI_load, sliderF_load;
 
 		while (!f_read.eof())
 		{
+			form form_load;
+			child child_load;
+			simple_obj obj_load;
+			
 			std::getline(f_read, line);
-
-			/// <summary>
-			/// MENU
-			/// </summary>
-			/// <param name="file"></param>
-
 			if (!line.compare("#forms"))
 			{
-				menu = 0; continue;
-			}	 if (!line.compare("#buttons"))
-			{
-				menu = 1; continue;
-			}
-			if (!line.compare("#txt"))
-			{
-				menu = 2; continue;
-			}if (!line.compare("#sliderI"))
-			{
-				menu = 3; continue;
-			}
-			if (!line.compare("#sliderF"))
-			{
-				menu = 4; continue;
-			}	 if (!line.compare("#toggle"))
-			{
-				menu = 5; continue;
-			}
-			if (!line.compare("#checkbox"))
-			{
-				menu = 6; continue;
-			} if (!line.compare("#radio"))
-			{
-				menu = 7; continue;
-			}if (!line.compare("#label"))
-			{
-				menu = 8; continue;
-			}if (!line.compare("#childs"))
-			{
-				menu = 10; continue;
-			}
-			if (line.empty())
+				menu = 0;
 				continue;
-
-			auto obj = split(line, ',');
-			ImVec2 size;
-			ImVec2 pos;
-
-			switch (menu)
+			}
+			if (!line.compare("#child"))
+			{
+				menu = 1;
+				continue;
+			}
+			if (!line.compare("#obj"))
+			{
+				menu = 2;
+				continue;
+			}
+			if (!line.compare(""))
+			{
+				menu = 5;
+				continue;
+			}
+			
+				// VAR STRING
+			auto vstr = split(line, ',');
+			switch(menu)
 			{
 			case 0:
-				std::cout << "#forms\n";
-				form_load.form_id = std::atoi(obj[0].c_str());
-				id_ = form_load.form_id;
-				form_load.name_form = obj[1];
-				size = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-
-				form_load.size = size;
-				forms.push_back(form_load);
-				//form
+				
+				form_load.id = std::stoi(vstr[0]);
+				id_ = form_load.id;
+				form_load.name = vstr[1];
+				form_load.size.x = std::stof(vstr[2]);
+				form_load.size.y = std::stof(vstr[3]);
+				
+				form_.push_back(form_load);
+		
+				printf("Loading form\n");
 				break;
+
 			case 1:
-				std::cout << "##buttons\n";
-				btn_load.Form_id = std::atoi(obj[0].c_str());
-				btn_load.id = std::atoi(obj[1].c_str());
-				btn_id_ = btn_load.id++;
-
-				size = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-
-				btn_load.size_item = size;
-				pos = { static_cast<float>(std::atof(obj[4].c_str())), static_cast<float>(std::atof(obj[5].c_str())) };
-				btn_load.Pos_item = pos;
-				btn_load.name_item = obj[6];
-				buttons.push_back(btn_load);
-				//btn
+				child_load.id = std::stoi(vstr[0]);
+				child_id = child_load.id;
+				child_load.father = std::stoi(vstr[1]);
+				child_load.name = vstr[2];
+				child_load.size.x = std::stof(vstr[3]);
+				child_load.size.y = std::stof(vstr[4]);
+				child_load.pos.x = std::stof(vstr[5]);
+				child_load.pos.y = std::stof(vstr[6]);
+				form_[child_load.father].child.push_back(child_load);
+				
+				printf("Loading child\n");
 				break;
 
 			case 2:
-				std::cout << "##txt\n";
+				obj_load.id = std::stoi(vstr[0]);
+				obj_id = obj_load.id;
+				obj_load.form = std::stoi(vstr[1]);
+				obj_load.child = std::stoi(vstr[2]);
+				obj_load.name = vstr[3];
+				obj_load.my_type = std::stoi(vstr[4]);
+				obj_load.size.x = std::stof(vstr[5]);
+				obj_load.size.y = std::stof(vstr[6]);
+				obj_load.pos.x = std::stof(vstr[7]);
+				obj_load.pos.y = std::stof(vstr[8]);
+				
+				obj_render_me.push_back(obj_load);
+				
+				printf("Loading obj\n");
+				break;
+			default:
 
-				text_load.Form_id = std::atoi(obj[0].c_str());
-				text_load.id = std::atoi(obj[1].c_str());
-				txt_id_ = text_load.id++;
-				text_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
-				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
-				text_load.Pos_item = pos;
-				text_load.name_text = obj[5];
-				text_load.same_buffer = obj[6];
-				texts.push_back(text_load);
-				//txts
-				break;
-			case 3:
-				std::cout << "##sliderI\n";
-				sliderI_load.Form_id = std::atoi(obj[0].c_str());
-				sliderI_load.id = std::atoi(obj[1].c_str());
-				si_ = sliderI_load.id++;
-				sliderI_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
-				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
-				sliderI_load.Pos_item = pos;
-				sliderI_load.name = obj[5];
-				SliderI.push_back(sliderI_load);
-				//slider integer
-				break;
-			case 4:
-				std::cout << "##sliderF\n";
-
-				sliderF_load.Form_id = std::atoi(obj[0].c_str());
-				sliderF_load.id = std::atoi(obj[1].c_str());
-				sf_ = sliderF_load.id++;
-				sliderF_load.wight = static_cast<float>(std::atof(obj[2].c_str()));
-				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
-				sliderF_load.Pos_item = pos;
-				sliderF_load.name = obj[5];
-				SliderI.push_back(sliderF_load);
-				//slider float
-				break;
-			case 5:
-				std::cout << "##toggle\n";
-
-				toggle_load.form_id = std::atoi(obj[0].c_str());
-				toggle_load.id = std::atoi(obj[1].c_str());;
-				tg_id_ = toggle_load.id;
-				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-				toggle_load.Pos_item = pos;
-				toggle_load.name = obj[4];
-				toggle.push_back(toggle_load);
-
-				//toggle
-				break;
-			case 6:
-				std::cout << "##checkbox\n";
-				checkbox_load.form_id = std::atoi(obj[0].c_str());
-				checkbox_load.id = std::atoi(obj[1].c_str());;
-				chk_id_ = checkbox_load.id;
-				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-				checkbox_load.Pos_item = pos;
-				checkbox_load.name = obj[4];
-				checkbox.push_back(checkbox_load);
-				//checkbox
-				break;
-			case 7:
-				std::cout << "##radio\n";
-				radio_load.form_id = std::atoi(obj[0].c_str());
-				radio_load.id = std::atoi(obj[1].c_str());;
-				rd_ = radio_load.id;
-				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-				radio_load.Pos_item = pos;
-				radio_load.name = obj[4];
-				Radio.push_back(radio_load);
-				//radio
-				break;
-			case 8:
-				std::cout << "##label\n";
-				lbl.form_id = std::atoi(obj[0].c_str());
-				lbl.id = std::atoi(obj[1].c_str());;
-				lbl_ = lbl.id;
-				pos = { static_cast<float>(std::atof(obj[2].c_str())), static_cast<float>(std::atof(obj[3].c_str())) };
-				lbl.Pos_item = pos;
-				lbl.name = obj[4];
-				label.push_back(lbl);
-				//label
-				break;
-			case 10:
-				std::cout << "##child\n";
-				child.a.form_id = std::atoi(obj[0].c_str());
-				child.a.id = std::atoi(obj[1].c_str());;
-				chld_ = child.a.id;
-				child.border = std::atoi(obj[2].c_str());
-				pos = { static_cast<float>(std::atof(obj[3].c_str())), static_cast<float>(std::atof(obj[4].c_str())) };
-				child.a.Pos_item = pos;
-				size = { static_cast<float>(std::atof(obj[5].c_str())), static_cast<float>(std::atof(obj[6].c_str())) };
-				child.size = size;
-				child.a.name = obj[7];
-				childs.push_back(child);
-				//child
 				break;
 			}
 		}
@@ -751,85 +632,36 @@ void ImGuiBuilder::save_building(std::string& file)
 
 	if (f_write.is_open())
 	{
-		f_write << "#forms\n";
-		for (const auto& form : forms)
-		{
-			f_write << form.form_id << "," << form.name_form << "," << form.size.x << "," << form.size.y << "\n";
-		}
-		if (!buttons.empty())
-			f_write << "#buttons\n";
-		for (const auto& obj : buttons)
-		{
-			f_write << obj.Form_id << "," << obj.id << "," << obj.size_item.x << "," << obj.size_item.y;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name_item << "\n";
-		}
-		if (!texts.empty())
-			f_write << "#txt\n";
-		for (const auto& obj : texts)
-		{
-			f_write << obj.Form_id << "," << obj.id << "," << obj.wight;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name_text << "," << obj.same_buffer << "\n";
-		}
-		if (!SliderI.empty())
-			f_write << "#sliderI\n";
-		for (const auto& obj : SliderI)
-		{
-			f_write << obj.Form_id << "," << obj.id << "," << obj.wight;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!SliderF.empty())
-			f_write << "#sliderF\n";
-		for (const auto& obj : SliderF)
-		{
-			f_write << obj.Form_id << "," << obj.id << "," << obj.wight;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!toggle.empty())
-			f_write << "#toggle\n";
-		for (const auto& obj : toggle)
-		{
-			f_write << obj.form_id << "," << obj.id;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!checkbox.empty())
-			f_write << "#checkbox\n";
-		for (const auto& obj : checkbox)
-		{
-			f_write << obj.form_id << "," << obj.id;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!Radio.empty())
-			f_write << "#radio\n";
-		for (const auto& obj : Radio)
-		{
-			f_write << obj.form_id << "," << obj.id;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!label.empty())
-			f_write << "#label\n";
-		for (const auto& obj : label)
-		{
-			f_write << obj.form_id << "," << obj.id;
-			f_write << "," << obj.Pos_item.x << "," << obj.Pos_item.y << "," << obj.name << "\n";
-		}
-		if (!childs.empty())
-			f_write << "#childs\n";
-		for (const auto& obj : childs)
-		{
-			f_write << obj.a.form_id << "," << obj.a.id << "," << obj.border;
-			f_write << "," << obj.a.Pos_item.x << "," << obj.a.Pos_item.y;
-			f_write << "," << obj.size.x << "," << obj.size.y << "," << obj.a.name << "\n";
-		}
 
+		for (const auto& form : form_)
+		{
+			f_write << "#forms\n";
+			f_write << form.id << "," << form.name << "," << form.size.x << "," << form.size.y << "\n";
+			
+			for(const auto& ch : form.child)
+			{
+				f_write << "#child\n";
+				f_write << ch.id << "," << ch.father << "," << ch.name << "," << ch.size.x << "," << ch.size.y <<"," << ch.pos.x << "," << ch.pos.y << "\n";
+			}
+
+
+			for(const auto& obj : obj_render_me)
+			{
+				if(form.id == obj.form)
+				{
+					f_write << "#obj\n";
+					f_write << obj.id << "," << obj.form << "," << obj.child << "," << obj.name << "," << obj.my_type << "," << obj.size.x << "," << obj.size.y << "," << obj.pos.x << "," << obj.pos.y << "\n";
+				}
+			}
+		}
+		
 		f_write.close();
 	}
 }
 
+
 void ImGuiBuilder::mainform_draw(HWND wnd)
 {
-	//PushAllColorsDark(); no make  sanse
-	//ImGui::StyleColorsDark();
-
 	PushAllColorsDark(dark_);
 	auto width = 1280;
 	RECT rect;
@@ -838,6 +670,8 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 		width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
 	}
+
+	window = wnd;
 
 	if (button_ok)
 	{
@@ -867,11 +701,17 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 		ImGui::End();
 	}
 
+	if(color_menu)
+		color_editor();
+	
+	if(style_menu)
+		window_flag(custom_gui_style);
+	
+
 	ImGui::SetNextWindowSize({ static_cast<float>(width - 16), 100 });
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::Begin("BUILDER", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
 
-	//std::cout << width << std::endl;
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -898,411 +738,349 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("Editor"))
+		{
+			if (ImGui::MenuItem("Color"))
+			{
+				color_menu = !color_menu;
+				
+			}
+
+			if (ImGui::MenuItem("Style"))
+			{
+				style_menu = !style_menu;
+			}
+
+			ImGui::EndMenu();
+		}
 		ImGui::EndMenuBar();
 	}
 
 	if (ImGui::Button("New Form"))
-		create_from();
-	ImGui::SameLine();
-	if (ImGui::Button("New Button"))
-		create_button();
-	ImGui::SameLine();
-	if (ImGui::Button("New Text"))
-		create_text();
-	ImGui::SameLine();
-	if (ImGui::Button("New CheckBox"))
-		create_chk();
-	ImGui::SameLine();
-	if (ImGui::Button("New Toggle Button"))
-		create_toggle();
-	ImGui::SameLine();
-	if (ImGui::Button("New Slider Int"))
-		create_sliderI();
-	ImGui::SameLine();
-	if (ImGui::Button("New Slider float"))
-		create_sliderF();
-	ImGui::SameLine();
-	if (ImGui::Button("New RadioButton"))
-		create_radio();
-	ImGui::SameLine();
-	if (ImGui::Button("New Label"))
-		create_label();
+	{
+		create_form();
+	}
 	ImGui::SameLine();
 	if (ImGui::Button("New Child"))
+	{
 		create_child();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New Button"))
+	{
+		create_obj(1);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New Label"))
+	{
+		create_obj(2);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New Text"))
+	{
+		create_obj(3);
+	}
 	ImGui::SameLine();
 
+	if (ImGui::Button("New Slider Int"))
+	{
+		create_obj(4);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New Slider float"))
+	{
+		create_obj(5);
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("New CheckBox"))
+	{
+		create_obj(6);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New radio"))
+	{
+		create_obj(7);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("New toggle"))
+	{
+		create_obj(8);
+	}
+
+	//ImGui::SameLine();
 	/* if (ImGui::Button("Generate Code"))
 	{
 		create_builder();
 	} */
 
-	ImGui::SameLine();
+	//ImGui::SameLine();
 
-	ImGui::Checkbox("Editor", &color);
-	if (color)
-		color_editor();
+	//ImGui::Checkbox("Editor", &color);
+	//if (color)
+	//	color_editor();
 
-	show_propriets_geral();
+	object_property();
 	PopAllColorsCustom();
-	//PopAllColorsDark(); no make sense
 
 	PushAllColorsCustom();
 
-	show_form(wnd);
+	show_form();
 
 	PopAllColorsCustom();
 
 	ImGui::End();
 }
 
-void ImGuiBuilder::create_from()
+void ImGuiBuilder::create_form()
 {
-	++id_;
-	std::string form_name = "form id:";
-	form_name.append(std::to_string(id_));
-	forms.push_back({ id_, { 200, 100 }, false, form_name });
-	current_item = form_name + ":" + std::to_string(id_);
-	frm = forms[id_ - 1];
-	index = id_ - 1;
-	identf = 1; // forms
-}
-
-void ImGuiBuilder::create_button()
-{
-	//index init for zero
-	std::string name = "button";
-	name.append(std::to_string(btn_id_));
-	buttons.push_back({ id_, btn_id_, { 10, 10 }, { 0, 0 }, false, name });
-	current_item = name + ":" + std::to_string(btn_id_);
-	index = btn_id_;
-	identf = 2;
-	btn_id_++;
-}
-
-void ImGuiBuilder::create_text()
-{
-
-	std::string name = "txt_edit";
-	name.append(std::to_string(txt_id_));
-	texts.push_back({ id_, txt_id_, { 10, 20 }, 0, false, name, "Text here" });
-	current_item = name + ":" + std::to_string(txt_id_);
-	index = txt_id_;
-	identf = 3;
-	txt_id_++;
-}
-
-void ImGuiBuilder::create_chk()
-{
-
-	const auto name = "checkbox" + std::to_string(chk_id_);
-	checkbox.push_back({ id_, chk_id_, { 10, 20 }, name });
-	current_item = name + ":" + std::to_string(chk_id_);
-	index = chk_id_;
-	identf = 4;
-	chk_id_++;
-}
-
-void ImGuiBuilder::create_toggle()
-{
-
-	const auto name = "toggle" + std::to_string(tg_id_);
-	toggle.push_back({ id_, tg_id_, { 10, 20 }, name });
-	current_item = name + ":" + std::to_string(tg_id_);
-	index = tg_id_;
-	identf = 5;
-	tg_id_++;
-}
-
-void ImGuiBuilder::create_sliderI()
-{
-	const auto name = "SliderInt" + std::to_string(si_);
-	SliderI.push_back({ id_, si_, { 10, 20 }, 0, name });
-	current_item = name + ":" + std::to_string(si_);
-	index = si_;
-	identf = 6;
-	si_++;
-}
-
-void ImGuiBuilder::create_sliderF()
-{
-	const auto name = "SliderFloat" + std::to_string(sf_);
-	SliderF.push_back({ id_, sf_, { 10, 20 }, 0, name });
-	current_item = name + ":" + std::to_string(sf_);
-	index = sf_;
-	identf = 7;
-	sf_++;
-}
-
-void ImGuiBuilder::create_radio()
-{
-	const auto name = "Radio" + std::to_string(rd_);
-	Radio.push_back({ id_, rd_, { 10, 20 }, name });
-	current_item = name + ":" + std::to_string(rd_);
-	index = rd_;
-	identf = 8;
-	rd_++;
-}
-
-void ImGuiBuilder::create_label()
-{
-	
-	const auto name = "label:" + std::to_string(lbl_);
-	label.push_back({ id_, lbl_, { 10, 20 }, "You text here" });
-	current_item = "You text here:" + std::to_string(lbl_);
-	index = lbl_;
-	identf = 9;
-	lbl_++;
+	// that give warning...
+	id_++;
+	form_.push_back({ id_, "form" + std::to_string(id_), { 50,50 } });
 }
 
 void ImGuiBuilder::create_child()
 {
-	const auto name = "Child:" + std::to_string(chld_);
-	childs.push_back({ { id_, chld_, { 10, 20 }, name }, true, { 30, 30 } });
-	current_item = name + ":" + std::to_string(chld_);
-	index = chld_;
-	identf = 20;
-	chld_++;
+	// fixed in update...
+	// child id is dinamic to form
+	child_id = form_[id_].child.size();
+	form_[id_].child.push_back({ child_id, "child" + std::to_string(child_id), id_, true, {50,50}, {15,15} });
 }
 
-void ImGuiBuilder::show_form(HWND window)
+void ImGuiBuilder::create_obj(uint16_t type)
 {
-	ImGuiBuilder::window = window;
-
-	for (size_t id_form = 0; id_form < forms.size(); id_form++)
+	// create any obj
+	obj_id++;
+	std::string name;
+	switch (type)
 	{
-		if (forms[id_form].edition)
-			continue;
-		
+	case 1:
+		name = "button";
+		break;
+	case 2:
+		name = "label";
+		break;
+	case 3:
+		name = "edit";
+		break;
+	case 4:
+		name = "sliderI";
+		break;
+	case 5:
+		name = "sliderF";
+		break;
+	case 6:
+		name = "checkbox";
+		break;
+	case 7:
+		name = "radio";
+		break;
+	case 8:
+		name = "toggle";
+		break;
+	}
 
-		ImGui::SetNextWindowSize(forms[id_form].size);
-		if (!moving_obj)
-			ImGui::Begin(forms[id_form].name_form.c_str(), nullptr, 0);
+	name += std::to_string(obj_id);
+	const simple_obj new_obj = { obj_id, id_, -1, name, type, {}, {30,30} };
+	//form_[id_].obj_render_me.push_back(new_obj);
+	obj_render_me.push_back(new_obj);
+}
+
+void ImGuiBuilder::show_form()
+{
+	for (auto& form : form_)
+	{
+		ImGui::SetNextWindowSize(form.size);
+		//	if any other obj is moving position
+		//freezer form because if obj dont have much area for hover like label form move too
+		//
+		if (moving_obj)
+			ImGui::Begin(form.name.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 		else
-			ImGui::Begin(forms[id_form].name_form.c_str(), nullptr, ImGuiWindowFlags_NoMove);
+			ImGui::Begin(form.name.c_str(), nullptr, ImGuiWindowFlags_NoCollapse);
 
-		forms[id_form].size = ImGui::GetWindowSize();
-		forms[id_form].pos = ImGui::GetWindowPos();
+		form.pos = ImGui::GetWindowPos(); // get value position form
+		form.size = ImGui::GetWindowSize(); // get value size form
 
-		if( ImGui::IsWindowHovered() && ImGui::IsMouseDoubleClicked(0))
+		// get propriety of form with user double click mouse 
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseDoubleClicked(0))
 		{
-			index = id_form;
-			identf = 1;
+			current_item = form.name + ":" + std::to_string(form.id);
+			family = form.id;
+			type = 0;
 		}
-
 		
-		//Child
-		for (auto& objc : childs)
+		//Render obj save him
+		for (auto& obj : obj_render_me)
 		{
-			if (objc.a.delete_me)
-				continue;
-			if (objc.a.form_id == forms[id_form].form_id)
+			if (obj.form == form.id && obj.child < 0) // if really obj for this form and not include in child
 			{
-				ImGui::SetCursorPos(objc.a.Pos_item);
-				ImGui::BeginChild(objc.a.name.c_str(), objc.size, objc.border, ImGuiWindowFlags_NoBringToFrontOnFocus);
-				// AKI 
-				ImGui::EndChild();
-				objc.hover = ImGui::IsItemHovered();
+				// render obj
+				render_obj(obj);
 			}
 		}
-
-		//Buttons
-		for (auto& objc : buttons)
+		for (auto& ch_render : form.child)
 		{
-			if (objc.delete_me)
-				continue;
+			ImGui::SetCursorPos(ch_render.pos);
 
-			
-			if (objc.Form_id == forms[id_form].form_id)
+			// if signal of delete object
+			if (ch_render.delete_me)
 			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				ImGui::Button(objc.name_item.c_str(), objc.size_item);
+				// delete obj
+				form.child.erase(form.child.begin() + ch_render.id);
 
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
+				// if obj not is last
+				if (ch_render.id != obj_render_me.size())
 				{
-					index = objc.id;
-					identf = 2;
+					// previous object, before rendering the others
+					for (auto new_id = ch_render.id - 1; new_id < form.child.size(); ++new_id)
+					{
+						form.child[new_id].id -= 1;
+						child_id = form.child[new_id].id; // lest index of object
+					}
 				}
-
-			}
-		}
-
-
-		//Texts
-		for (auto& objc : texts)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.Form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				ImGui::PushItemWidth(objc.wight);
-				ImGui::InputText(objc.name_text.c_str(), const_cast<char*>(objc.same_buffer.c_str()), 25);
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
+				else
 				{
-					index = objc.id;
-					identf = 3;
+					// if is last obj only dec id objects preview
+					child_id--;
+				}
+				break; //not to render the object
+			}
+
+			ImGui::BeginChild(ch_render.name.c_str(), ch_render.size, ch_render.border);
+
+			for (auto& obj : obj_render_me)
+			{
+				if (obj.form == form.id && obj.child == ch_render.id) // render obj with child
+				{
+					//Render all obj
+					render_obj(obj);
 				}
 			}
-		}
 
-		//CheckBox
-		for (auto& objc : checkbox)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				static bool vb;
-				ImGui::Checkbox(objc.name.c_str(), &vb);
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = objc.id;
-					identf = 4;
-				}
-			}
-		}
+			ImGui::EndChild();
 
-		//Toggle
-		for (auto& objc : toggle)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				static auto vb = false;
-				ToggleButton(objc.name.c_str(), &vb);
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = objc.id;
-					identf = 5;
-				}
-			}
-		}
+			// check if selected
+			ch_render.hover = ImGui::IsItemHovered();
 
-		//Slider Integer
-		for (auto& objc : SliderI)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.Form_id == forms[id_form].form_id)
+			// thats is shame but... work good....
+			if (ch_render.hover && ImGui::IsMouseClicked(0, false))
 			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				static int vl;
-				ImGui::PushItemWidth(objc.wight);
-				ImGui::SliderInt(objc.name.c_str(), &vl, 0, 100);
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = objc.id;
-					identf = 6;
-				}
+				current_item = ch_render.name + ':' + std::to_string(ch_render.id);
+				family = ch_render.father;
+				index = ch_render.id;
+				type = 10;
 			}
 		}
-
-		//Slider Float
-		for (auto& objc : SliderF)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.Form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				static float vl;
-				ImGui::PushItemWidth(objc.wight);
-				ImGui::SliderFloat(objc.name.c_str(), &vl, 0, 100);
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = objc.id;
-					identf = 7;
-				}
-			}
-		}
-		//Radio box
-		for (size_t i = 0; i < Radio.size(); ++i)
-		{
-			if (Radio[i].delete_me)
-				continue;
-			if (Radio[i].form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(Radio[i].Pos_item);
-				static int vi;
-				ImGui::RadioButton(Radio[i].name.c_str(), &vi, i);
-				Radio[i].size_obj_ac = ImGui::GetItemRectSize();
-				Radio[i].hover = ImGui::IsItemHovered();
-				if (Radio[i].hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = Radio[i].id;
-					identf = 8;
-				}
-			}
-		}
-		//label
-		for (auto& objc : label)
-		{
-			if (objc.delete_me)
-				continue;
-			if (objc.form_id == forms[id_form].form_id)
-			{
-				ImGui::SetCursorPos(objc.Pos_item);
-				ImGui::Text(objc.name.c_str());
-				objc.size_obj_ac = ImGui::GetItemRectSize();
-				objc.hover = ImGui::IsItemHovered();
-				if (objc.hover && ImGui::IsMouseClicked(0, false))
-				{
-					index = objc.id;
-					identf = 9;
-				}
-			}
-		}
-
 		ImGui::End();
+	}
+}
+
+void ImGuiBuilder::render_obj(simple_obj& obj)
+{
+	// set pos for next obj render
+	ImGui::SetCursorPos(obj.pos);
+
+	// if signal of delete object
+	if (obj.delete_me)
+	{
+		// delete obj
+		obj_render_me.erase(obj_render_me.begin() + obj.id);
+
+		// if obj not is last
+		if (obj.id != obj_render_me.size())
+		{
+			// previous object, before rendering the others
+			for (auto new_id = obj.id - 1; new_id < obj_render_me.size(); ++new_id)
+			{
+				obj_render_me[new_id].id -= 1;
+				obj_id = obj_render_me[new_id].id; // lest index of object
+			}
+		}
+		else
+		{
+			// if is last obj only dec id objects preview
+			obj_id--;
+		}
+		return; //not to render the object
+	}
+
+	// To type any obj for render set in case
+	// to render all obj for 1 time in loop
+
+	// buffer for inputs
+	std::string buffer = "text here";
+	int valueI = 0;
+	float valueF = 0;
+	static bool true_bool = false;
+
+	// render obj
+	switch (obj.my_type)
+	{
+	case 1:
+		ImGui::Button(obj.name.c_str(), obj.size);
+		break;
+	case 2:
+		ImGui::Text(obj.name.c_str());
+		break;
+	case 3:
+		ImGui::InputText(obj.name.c_str(), const_cast<char*>(buffer.c_str()), 254);
+		break;
+	case 4:
+		ImGui::SliderInt(obj.name.c_str(), &valueI, 0, 100);
+
+		break;
+	case 5:
+		ImGui::SliderFloat(obj.name.c_str(), &valueF, 0, 100);
+		break;
+	case 6:
+		ImGui::Checkbox(obj.name.c_str(), &true_bool);
+
+		break;
+	case 7:
+		ImGui::RadioButton(obj.name.c_str(), true_bool);
+		break;
+	case 8:
+		ToggleButton(obj.name.c_str(), &true_bool);
+		break;
+	default:
+		break;
+	}
+
+	// get size and hover of object
+	obj.size_obj = ImGui::GetItemRectSize();
+	obj.hover = ImGui::IsItemHovered();
+	// Set family and type child etc for propri and execution modification on type
+	if (obj.hover && ImGui::IsMouseClicked(0, false))
+	{
+		current_item = obj.name + ':' + std::to_string(obj.id);
+		family = obj.form;
+		grandchild = obj.child;
+		index = obj.id;
+		type = obj.my_type;
 	}
 }
 
 //Move obj with cursor
 POINT old_pos = { 0, 0 };
 int count_pos = 0;
-ImVec2 Move_item(ImVec2 Obj_pos, HWND window, bool& continue_edt)
+ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 {
 	if (old_pos.x == 0 && count_pos == 0)
 		GetCursorPos(&old_pos);
 
-	//else if (count_pos == 1)
-	//    SetCursorPos(Obj_pos.x, Obj_pos.y);
-
-	POINT new_pos;
-
 	moving_obj = true;
-	if (GetAsyncKeyState(VK_LBUTTON) && window == GetForegroundWindow() && continue_edt) //
+	if (GetAsyncKeyState(VK_LBUTTON) && window == GetForegroundWindow() && continue_edt)
 	{
 		if (count_pos >= 5) // click and secure for 5 frames 30x5 ms
 		{
-			//GetCursorPos(&new_pos);
-			//Obj_pos.x = new_pos.x;
-			//Obj_pos.y = new_pos.y;
 			POINT pos;
 			GetCursorPos(&pos);
 			ScreenToClient(GetForegroundWindow(), &pos);
 			pos.x -= FormPos.x + itemsize.x / 2;
 			pos.y -= FormPos.y + itemsize.y / 2;
-			// printf_s( "%.f %.f\n", itemsize.x, itemsize.y );
-			Obj_pos.x = static_cast<float>(pos.x);
-			Obj_pos.y = static_cast<float>(pos.y);
+			obj_pos.x = static_cast<float>(pos.x);
+			obj_pos.y = static_cast<float>(pos.y);
 			continue_edt = true;
 		}
 		++count_pos;
@@ -1312,741 +1090,291 @@ ImVec2 Move_item(ImVec2 Obj_pos, HWND window, bool& continue_edt)
 		moving_obj = false;
 		continue_edt = false;
 		count_pos = 0;
-		//SetCursorPos(old_pos.x, old_pos.y);
 		old_pos = { 0, 0 };
 	}
-	return Obj_pos;
+	return obj_pos;
 }
-ImVec2 Move_item(ImVec2 Obj_pos, HWND window)
+ImVec2 Move_item(ImVec2 Obj_pos, HWND window) // overload
 {
 	auto hover_emulation = true;
 	return  Move_item(Obj_pos, window, hover_emulation);
 }
 
-void ImGuiBuilder::show_propriets_geral()
+void ImGuiBuilder::object_property()
 {
-	PushAllColorsDark(dark_);
 	ImGui::SetNextWindowPos({ 0, 100 });
 	ImGui::SetNextWindowSize({ 300, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
+	ImGui::Begin("property", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
 
 	if (ImGui::BeginCombo("##itens", current_item.c_str()))
 	{
-		for (size_t n = 0; n < forms.size(); n++)
-		{
-			if (forms[n].edition)
-			{
-				forms[n].edition = false;
-				forms.erase(forms.begin() + n);
-				id_ = forms[forms.size() - 1].form_id;
-				break;
-			}
+		// list all obj render in array child and form
 
-			auto item = forms[n].name_form + ":" + std::to_string(forms[n].form_id);
+		for (auto& n : form_)
+		{
+			// it is simply possible to simplify this please do this
+			auto item = n.name + ":" + std::to_string(n.id);
 			const auto is_selected = (current_item == item);
 			if (ImGui::Selectable(item.c_str(), is_selected))
 			{
-				current_item = forms[n].name_form + ":" + std::to_string(forms[n].form_id);
-				index = n;
-				identf = 1; // forms
+				current_item = item;
+				type = 0;
+				family = n.id;
 			}
+			for (auto& c : n.child)
+			{
+				item = c.name + ":" + std::to_string(c.id);
+				if (ImGui::Selectable(item.c_str(), is_selected))
+				{
+					family = n.id;
+					index = c.id;
+					type = 10;
+					current_item = item;
+				}
+			}
+
+			item = "";
 
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
+
+		for (auto& o : obj_render_me)
+		{
+			auto item = o.name + ":" + std::to_string(o.id);
+			const auto is_selected = (current_item == item);
+			if (o.delete_me)
+			{
+				index = 00;
+				type = -1;
+			}
+
+			item = o.name + ":" + std::to_string(o.id);
+			if (ImGui::Selectable(item.c_str(), is_selected))
+			{
+				family = o.form;
+				grandchild = o.child;
+				index = o.id;
+				type = o.my_type;
+				current_item = item;
+			}
+
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+
 		
-		for (size_t n = 0; n < buttons.size(); n++)
-		{
-			if(buttons[n].delete_me)
-			{
-				buttons[n].delete_me = false;
-				buttons[n].Form_id = -999;
-				static size_t new_id = 0;
-				buttons.erase(buttons.begin() + n);
-				for (new_id = n; new_id < buttons.size(); ++new_id)
-				{
-					buttons[new_id].id -=1;
-				}
-			}
-			auto item = buttons[n].name_item + ":" + std::to_string(buttons[n].id);
-
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = buttons[n].name_item + ":" + std::to_string(buttons[n].id);
-				index = n;
-				identf = 2;// buttons
-			}
-
-			if (is_selected)
-			{
-
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		for (size_t n = 0; n < texts.size(); n++)
-		{
-
-			if (texts[n].delete_me)
-			{
-				texts[n].delete_me = false;
-				texts[n].Form_id = -999;
-				static size_t new_id = 0;
-				texts.erase(texts.begin() + n);
-				for (new_id = n; new_id < texts.size(); ++new_id)
-				{
-					texts[new_id].id -= 1;
-				}
-			}
-			
-			auto item = texts[n].name_text + ":" + std::to_string(texts[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = texts[n].name_text + ":" + std::to_string(texts[n].id);
-				index = n;
-				identf = 3;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < checkbox.size(); n++)
-		{
-
-			if (checkbox[n].delete_me)
-			{
-				checkbox[n].delete_me = false;
-				checkbox[n].form_id = -999;
-				static size_t new_id = 0;
-				checkbox.erase(checkbox.begin() + n);
-				for (new_id = n; new_id < checkbox.size(); ++new_id)
-				{
-					checkbox[new_id].id -= 1;
-				}
-			}
-			
-			auto item = checkbox[n].name + ":" + std::to_string(checkbox[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = checkbox[n].name + ":" + std::to_string(checkbox[n].id);
-				index = n;
-				identf = 4;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < toggle.size(); n++)
-		{
-
-			if (toggle[n].delete_me)
-			{
-				toggle[n].delete_me = false;
-				toggle[n].form_id = -999;
-				static size_t new_id = 0;
-				toggle.erase(toggle.begin() + n);
-				for (new_id = n; new_id < toggle.size(); ++new_id)
-				{
-					toggle[new_id].id -= 1;
-				}
-			}
-			
-			auto item = toggle[n].name + ":" + std::to_string(toggle[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = toggle[n].name + ":" + std::to_string(toggle[n].id);
-				index = n;
-				identf = 5;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < SliderI.size(); n++)
-		{
-			if (SliderI[n].delete_me)
-			{
-				SliderI[n].delete_me = false;
-				SliderI[n].Form_id = -999;
-				static size_t new_id = 0;
-				SliderI.erase(SliderI.begin() + n);
-				for (new_id = n; new_id < SliderI.size(); ++new_id)
-				{
-					SliderI[new_id].id -= 1;
-				}
-			}
-			
-			auto item = SliderI[n].name + ":" + std::to_string(SliderI[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = SliderI[n].name + ":" + std::to_string(SliderI[n].id);
-				index = n;
-				identf = 6;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < SliderF.size(); n++)
-		{
-
-			if (SliderF[n].delete_me)
-			{
-				SliderF[n].delete_me = false;
-				SliderF[n].Form_id = -999;
-				static size_t new_id = 0;
-				SliderF.erase(SliderF.begin() + n);
-				for (new_id = n; new_id < SliderF.size(); ++new_id)
-				{
-					SliderF[new_id].id -= 1;
-				}
-			}
-			auto item = SliderF[n].name + ":" + std::to_string(SliderF[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = SliderF[n].name + ":" + std::to_string(SliderF[n].id);
-				index = n;
-				identf = 7;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < Radio.size(); n++)
-		{
-			if (Radio[n].delete_me)
-			{
-				Radio[n].delete_me = false;
-				Radio[n].form_id = -999;
-				static size_t new_id = 0;
-				Radio.erase(Radio.begin() + n);
-				for (new_id = n; new_id < Radio.size(); ++new_id)
-				{
-					Radio[new_id].id -= 1;
-				}
-			}
-			auto item = Radio[n].name + ":" + std::to_string(Radio[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = Radio[n].name + ":" + std::to_string(Radio[n].id);
-				index = n;
-				identf = 8;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-
-		for (size_t n = 0; n < childs.size(); n++)
-		{
-			if (childs[n].a.delete_me)
-			{
-				childs[n].a.delete_me = false;
-				childs[n].a.form_id = -999;
-				static size_t new_id = 0;
-				childs.erase(childs.begin() + n);
-				for (new_id = n; new_id < childs.size(); ++new_id)
-				{
-					childs[new_id].a.id -= 1;
-				}
-			}
-			
-			auto item = childs[n].a.name + ":" + std::to_string(childs[n].a.id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = childs[n].a.name + ":" + std::to_string(childs[n].a.id);
-				index = n;
-				identf = 20;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		for (size_t n = 0; n < label.size(); n++)
-		{
-
-			if (label[n].delete_me)
-			{
-				label[n].delete_me = false;
-				label[n].form_id = -999;
-				static size_t new_id = 0;
-				label.erase(label.begin() + n);
-				for (new_id = n; new_id < label.size(); ++new_id)
-				{
-					label[new_id].id -= 1;
-				}
-			}
-			
-			auto item = label[n].name + ":" + std::to_string(label[n].id);
-			const auto is_selected = (current_item == item);
-			if (ImGui::Selectable(item.c_str(), is_selected))
-			{
-				current_item = label[n].name + ":" + std::to_string(label[n].id);
-				index = n;
-				identf = 9;
-			}
-
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-
 		ImGui::EndCombo();
 	}
-	ImGui::End();
 
-	switch (identf)
+	// vars for simplification functions less line length
+	child chl;
+	simple_obj obj;
+	form fm;
+
+	switch (type)
 	{
-	case 1:
-		show_propriedades_form(forms[index]);
-		current_item = forms[index].name_form + ":" + std::to_string(index);
+	case -1: // none
+
 		break;
 
-	case 2:
-		itemsize = buttons[index].size_obj_ac;
-		show_propriedades_btn(buttons[index]); 
-		current_item = buttons[index].name_item + ":" + std::to_string(index);
+	case 0: // form
+		fm = form_[family];
+		ImGui::InputInt("ID", &fm.id, 0);
+
+		ImGui::InputFloat("SizeX", &fm.size.x, 1);
+		ImGui::InputFloat("SizeY", &fm.size.y, 1);
+		ImGui::InputFloat("PosX", &fm.pos.x, 1);
+		ImGui::InputFloat("PosY", &fm.pos.y, 1);
+
+		if (ImGui::Button("APAGAR"))
+		{
+			fm.delete_me = true;
+			current_item = "";
+			type = -1;
+		}
+		form_[family] = fm;
 		break;
 
-	case 3:
+	case 10: // child
+		chl = form_[family].child[index];
+		FormPos = form_[family].pos;
+		ImGui::InputInt("ID", &chl.id, 0);
+		ImGui::InputInt("Form Father", &chl.father, 1);
+		ImGui::InputFloat("SizeX", &chl.size.x, 1);
+		ImGui::InputFloat("SizeY", &chl.size.y, 1);
+		ImGui::InputFloat("PosX", &chl.pos.x, 1);
+		ImGui::InputFloat("PosY", &chl.pos.y, 1);
+		ImGui::Checkbox("Border", &chl.border);
+		itemsize = chl.size;
+		if (chl.hover)
+			chl.change_pos = true;
+		
+		chl.pos = Move_item(chl.pos, window, chl.change_pos);
 
-		itemsize = texts[index].size_obj_ac;
-		show_propriedades_txt(texts[index]);
-		current_item = texts[index].name_text + ":" + std::to_string(index);
+		if (ImGui::Button("APAGAR"))
+		{
+			chl.delete_me = true;
+			current_item = "";
+			type = -1;
+		}
+		form_[family].child[index] = chl;
+		break;
+	default: // another obj
+		if (grandchild > -1)
+		{
+			obj = obj_render_me[index];
+			FormPos = form_[family].child[grandchild].pos;
+			FormPos.x += form_[family].pos.x;
+			FormPos.y += form_[family].pos.y;
+		}
+		else
+		{
+			obj = obj_render_me[index];
+			FormPos = form_[family].pos;
+		}
+
+		itemsize = obj.size_obj;
+		ImGui::InputInt("ID", &obj.id, 0);
+		ImGui::InputInt("Form Father", &obj.form, 1);
+		ImGui::InputInt("Child Father", &obj.child, 1);
+		ImGui::InputText("Name", const_cast<char*>(obj.name.c_str()), 255);
+		ImGui::InputFloat("PosX", &obj.pos.x, 1, 1);
+		ImGui::InputFloat("PosY", &obj.pos.y, 1, 1);
+		ImGui::InputFloat("SizeX", &obj.size.x, 1, 1);
+		ImGui::InputFloat("SizeY", &obj.size.y, 1, 1);
+
+		// check if hover because need for change position
+		if (obj.hover)
+			obj.change_pos = true;
+		obj.pos = Move_item(obj.pos, window, obj.change_pos);
+
+		// dont delete here!
+		if (ImGui::Button("APAGAR"))
+		{
+			obj.delete_me = true; 
+			current_item = "";
+			type = -1;
+		}
+
+		obj_render_me[index] = obj;
 
 		break;
-	case 4:
-		itemsize = checkbox[index].size_obj_ac;
-		show_propriedades_basic(checkbox[index]);
-		current_item = checkbox[index].name + ":" + std::to_string(index);
-		break;
-	case 5:
-		itemsize = toggle[index].size_obj_ac;
-		show_propriedades_basic(toggle[index]);
-		current_item = toggle[index].name + ":" + std::to_string(index);
-		break;
-
-	case 6:
-		itemsize = SliderI[index].size_obj_ac;
-		show_propriedades_slider(SliderI[index]);
-		current_item = SliderI[index].name + ":" + std::to_string(index);
-		break;
-	case 7:
-		itemsize = SliderF[index].size_obj_ac;
-		show_propriedades_slider(SliderF[index]);
-		current_item = SliderF[index].name + ":" + std::to_string(index);
-		break;
-	case 8:
-		itemsize = Radio[index].size_obj_ac;
-		show_propriedades_basic(Radio[index]);
-		current_item = Radio[index].name + ":" + std::to_string(index);
-
-		break;
-	case 9:
-		itemsize = label[index].size_obj_ac;
-		show_propriedades_basic(label[index]);
-		current_item = label[index].name + ":" + std::to_string(index);
-		break;
-	case 20:
-		itemsize = childs[index].size;
-		show_child_propriedade(childs[index]);
-		current_item = childs[index].a.name + ":" + std::to_string(index);
-		break;
-
-	default:
-		break;
-	}
-	PopAllColorsCustom();
-}
-
-void ImGuiBuilder::show_propriedades_basic(indentification_basic& obj_basic)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { obj_basic.Pos_item.x, obj_basic.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(obj_basic.name.c_str());
-	ImGui::InputText("Name", name, 100);
-
-	for (const auto& fmp : forms)
-	{
-		if (btn.Form_id == fmp.form_id)
-			FormPos = fmp.pos;
 	}
 
-	int father = obj_basic.form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-	obj_basic.form_id = father;
-
-	for (const auto& fmp : forms)
-	{
-		if (obj_basic.form_id == fmp.form_id)
-			FormPos = fmp.pos;
-	}
-	obj_basic.Pos_item.x = v[0];
-	obj_basic.Pos_item.y = v[1];
-
-	if (obj_basic.hover)
-		obj_basic.edt_pos = true;
-
-	obj_basic.Pos_item = Move_item(obj_basic.Pos_item, window, obj_basic.edt_pos);
-	obj_basic.name = name;
-
-	if (ImGui::Button("APAGAR"))
-	{
-		obj_basic.delete_me = true;
-		identf = 0;
-		current_item = "";
-	}
-	
-	ImGui::End();
-}
-
-void ImGuiBuilder::show_propriedades_slider(identification_slider& slider)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { slider.Pos_item.x, slider.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(slider.name.c_str());
-	ImGui::InputText("Name", name, 100);
-	auto width = slider.wight;
-
-	ImGui::InputFloat("width", &width, 1, 1);
-	int father = slider.Form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-	slider.Form_id = father;
-
-	for (const auto& fmp : forms)
-	{
-		if (slider.Form_id == fmp.form_id)
-			FormPos = fmp.pos;
-	}
-
-	slider.Pos_item.x = v[0];
-	slider.Pos_item.y = v[1];
-	if (slider.hover)
-		slider.edt_pos = true;
-
-	slider.Pos_item = Move_item(slider.Pos_item, window, slider.edt_pos);
-	slider.wight = width;
-
-	slider.name = name;
-
-	if (ImGui::Button("APAGAR"))
-	{
-		slider.delete_me = true;
-		identf = 0;
-		current_item = "";
-	}
-	
-	ImGui::End();
-}
-
-void ImGuiBuilder::show_propriedades_btn(indentification_btn& item_button)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { item_button.Pos_item.x, item_button.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(item_button.name_item.c_str());
-	ImGui::InputText("Name", name, 100);
-	auto width = item_button.size_item.x;
-	auto height = item_button.size_item.y;
-	ImGui::InputFloat("width", &width, 1, 1);
-	ImGui::InputFloat("height", &height, 1, 1);
-	int father = item_button.Form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-
-	const ImVec2 size(width, height);
-
-	item_button.Form_id = father;
-	for (const auto& fmp : forms)
-	{
-		if (item_button.Form_id == fmp.form_id)
-			FormPos = fmp.pos;
-	}
-
-	item_button.Pos_item.x = v[0];
-	item_button.Pos_item.y = v[1];
-
-	if (item_button.hover)
-		item_button.edition_pos = true;
-
-	item_button.Pos_item = Move_item(item_button.Pos_item, window, item_button.edition_pos);
-
-	item_button.size_item = size;
-	item_button.name_item = name;
-
-
-	if (ImGui::Button("APAGAR"))
-	{
-		item_button.delete_me = true;
-		identf = 0;
-		current_item = "";
-	}
-
-
-	ImGui::End();
-}
-
-void ImGuiBuilder::show_propriedades_txt(indentification_text& text)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { text.Pos_item.x, text.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(text.name_text.c_str());
-	ImGui::InputText("Name", name, 100);
-
-	auto width = text.wight;
-
-	ImGui::InputFloat("width", &width, 1, 1);
-	int father = text.Form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-
-	//ImGui::InputInt("Value", text.)
-
-	text.Form_id = father;
-	for (const auto& fmp : forms)
-	{
-		if (text.Form_id == fmp.form_id)
-			FormPos = fmp.pos;
-	}
-
-	text.Pos_item.x = v[0];
-	text.Pos_item.y = v[1];
-
-	if (text.hover)
-		text.edition = true;
-
-	text.Pos_item = Move_item(text.Pos_item, window, text.edition);
-	text.wight = width;
-	text.name_text = name;
-
-
-	if (ImGui::Button("APAGAR"))
-	{
-		text.delete_me = true;
-		identf = 0;
-		current_item = "";
-	}
-
-	ImGui::End();
-}
-
-void ImGuiBuilder::show_propriedades_form(indentification_form& form)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-	static char name[100] = { ' ' };
-	if (name[0] == ' ')
-		strcpy(name, form.name_form.c_str());
-
-	int ids = form.form_id;
-	ImGui::InputInt("ID", &ids, 1, 1);
-	ImGui::InputText("Name", name, 100);
-	if (ImGui::Button("Aplicar"))
-	{
-		form.name_form = name;
-		strcpy(name, " ");
-	}
-
-	ImGui::InputFloat("width", &form.size.x, 1, 1);
-	ImGui::InputFloat("height", &form.size.y, 1, 1);
-
-	// ImVec2 size(width, height);
-
-	form.form_id = ids;
-	// form.size = size;
-
-	if (ImGui::Button("APAGAR"))
-	{
-		form.edition = true;
-		identf = 0;
-		current_item = "";
-	}
-
-	ImGui::End();
-}
-
-void ImGuiBuilder::show_child_propriedade(child_bar& child)
-{
-	ImGui::SetNextWindowPos({ 0, 100 });
-	ImGui::SetNextWindowSize({ 200, 700 - 100 });
-	ImGui::Begin("PROPRIEDADES", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus);
-	float v[2] = { child.a.Pos_item.x, child.a.Pos_item.y };
-	ImGui::SliderFloat("posX", &v[0], 0, 1000);
-	ImGui::SliderFloat("posY", &v[1], 0, 1000);
-	auto* name = const_cast<char*>(child.a.name.c_str());
-	ImGui::InputText("Name", name, 100);
-	ImGui::Checkbox("Borda", &child.border);
-	auto width = child.size.x;
-	auto height = child.size.y;
-	ImGui::InputFloat("width", &width, 1, 1);
-	ImGui::InputFloat("height", &height, 1, 1);
-
-	child.size = { width, height };
-	int father = child.a.form_id;
-	ImGui::InputInt("ID Form PAI", &father, 1, 10);
-	child.a.form_id = father;
-	for (const auto& fmp : forms)
-	{
-		if (child.a.form_id == fmp.form_id)
-			FormPos = fmp.pos;
-	}
-
-	child.a.Pos_item.x = v[0];
-	child.a.Pos_item.y = v[1];
-
-	if (child.hover)
-		child.edt_pos = true;
-	child.a.Pos_item = Move_item(child.a.Pos_item, window, child.edt_pos);
-
-	child.a.name = name;
-
-
-	if (ImGui::Button("APAGAR"))
-	{
-		child.a.delete_me = true;
-		identf = 0;
-		current_item = "";
-	}
-	
 	ImGui::End();
 }
 
 void ImGuiBuilder::create_builder()
 {
+
+	static int fctn = 0;
 	file_builder = "";
 
-	if (!toggle.empty())
+	file_builder.append("void ToggleButton(const char* str_id, bool* v)\n");
+	file_builder.append("{ \nImVec2 p = ImGui::GetCursorScreenPos(); \nImDrawList* draw_list = ImGui::GetWindowDrawList();\nfloat height = ImGui::GetFrameHeight();\n");
+	file_builder.append("float width = height * 1.55f;\nfloat radius = height * 0.50f;\n if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))\n ");
+	file_builder.append("  *v = !*v;\nImU32 col_bg;\nif (ImGui::IsItemHovered())\n\t  col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);\n");
+	file_builder.append(" else\n\t   col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);\n  draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);\n   draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));\n}\n\n\n");
+
+	
+	
+	for(const auto &form: form_)
 	{
-		file_builder.append("void ToggleButton(const char* str_id, bool* v)\n");
-		file_builder.append("{ \nImVec2 p = ImGui::GetCursorScreenPos(); \nImDrawList* draw_list = ImGui::GetWindowDrawList();\nfloat height = ImGui::GetFrameHeight();\n");
-		file_builder.append("float width = height * 1.55f;\nfloat radius = height * 0.50f;\n if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))\n ");
-		file_builder.append("  *v = !*v;\nImU32 col_bg;\nif (ImGui::IsItemHovered())\n\t  col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);\n");
-		file_builder.append(" else\n\t   col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);\n  draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);\n   draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));\n}");
+		file_builder.append("void gui_builder" + std::to_string(fctn) + "()\n{\n");
+		file_builder.append("ImGui::SetNextWindowSize({" + std::to_string(static_cast<int>(form.size.x)) + ".f," + std::to_string(static_cast<int>(form.size.y)) + ".f});\n");
+		file_builder.append("\nImGui::Begin( \"" + form.name + "\");\n");
+		
+		for(const auto &obj : obj_render_me)
+		{
+			for(const auto chl : form.child)
+			{
+				//obj with child
+				if (obj.child == chl.id)
+				{
+					file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(chl.pos.x)) + ".f," + std::to_string(static_cast<int>(chl.pos.y)) + ".f});\n");				
+					file_builder.append("ImGui::BeginChild(\"" + chl.name + "\",{" + std::to_string(static_cast<int>(chl.size.x)) + ".f," + std::to_string(static_cast<int>(chl.size.y)) +".f},true );");
+					if (obj.child == chl.id && obj.form == form.id && chl.father == form.id)
+					{
+						file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(obj.pos.x)) + ".f," + std::to_string(static_cast<int>(obj.pos.y)) + ".f});\n");
+						//file_builder.append("ImGui::PushItemWidth(" + std::to_string(obj.size.x) + ".f);\n");
+						switch (obj.my_type)
+						{
+						case 1:
+							file_builder.append("if(ImGui::Button(\"" + obj.name + "\"," + std::to_string(static_cast<int>(obj.size.x)) + ".f," + std::to_string(static_cast<int>(obj.size.y)) + ".f}))\n{\n\n}\n");
+							break;
+						case 2:
+							file_builder.append("ImGui::Text(\"" + obj.name + "\");\n");
+							break;
+						case 3:
+							file_builder.append("ImGui::InputText(\"" + obj.name + "\", buffer, 255);\n");
+							break;
+						case 4:
+							file_builder.append("ImGui::SliderInt(\"" + obj.name + "\", &valueI,0,100);\n");
+							break;
+						case 5:
+							file_builder.append("ImGui::SliderFloat(\"" + obj.name + "\", &valueF,0,100);\n");
+							break;
+						case 6:
+							file_builder.append("ImGui::Checkbox(\"" + obj.name + "\", &the_bool);\n");
+							break;
+						case 7:
+							file_builder.append("ImGui::RadioButton(\"" + obj.name + "\", the_bool);\n");
+							break;
+						case 8:
+							file_builder.append("ToggleButton(\"" + obj.name + "\", the_bool);\n");
+							break;
+						default:
+							break;
+						}
+					}
+					file_builder.append("\nImGui::EndChild();");
+				}
+			}
+			
+			//obj none child
+			if (obj.child == -1 && obj.form == form.id)
+			{
+				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(obj.pos.x)) + ".f," + std::to_string(static_cast<int>(obj.pos.y)) + ".f});\n");
+				//file_builder.append("ImGui::PushItemWidth(" + std::to_string(obj.size.x) + ".f);\n");
+				switch (obj.my_type)
+				{
+				case 1:
+					file_builder.append("if(ImGui::Button(\"" + obj.name + "\"," + std::to_string(static_cast<int>(obj.size.x)) + ".f," + std::to_string(static_cast<int>(obj.size.y)) + ".f}))\n{\n\n}\n");
+					break;
+				case 2:
+					file_builder.append("ImGui::Text(\"" + obj.name + "\");\n");
+					break;
+				case 3:
+					file_builder.append("ImGui::InputText(\"" + obj.name + "\", buffer, 255);\n");
+					break;
+				case 4:
+					file_builder.append("ImGui::SliderInt(\"" + obj.name + "\", &valueI,0,100);\n");
+					break;
+				case 5:
+					file_builder.append("ImGui::SliderFloat(\"" + obj.name + "\", &valueF,0,100);\n");
+					break;
+				case 6:
+					file_builder.append("ImGui::Checkbox(\"" + obj.name + "\", &the_bool);\n");
+					break;
+				case 7:
+					file_builder.append("ImGui::RadioButton(\"" + obj.name + "\", the_bool);\n");
+					break;
+				case 8:
+					file_builder.append("ToggleButton(\"" + obj.name + "\", the_bool);\n");
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		
+		file_builder.append("\n\nImGui::End();\n}\n\n\n");
+		fctn+=1;
 	}
-
-	for (size_t i = 0; i < forms.size(); ++i)
-	{
-		file_builder.append("\nvoid ImGuiBuilder" + std::to_string(i) + "()\n{\n");
-		file_builder.append("ImGui::SetNextWindowSize({" + std::to_string(static_cast<int>(forms[i].size.x)) + ".f," + std::to_string(static_cast<int>(forms[i].size.y)) + ".f});\n");
-		file_builder.append("ImGui::Begin(\"" + forms[i].name_form + "\");");
-		file_builder.append("\n");
-
-		for (auto& button : buttons)
-		{
-			if (button.Form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(button.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(
-					button.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::Button(\"" + button.name_item + "\", {" + std::to_string(static_cast<int>(
-					button.size_item.x)) + ".f," + std::to_string(static_cast<int>(button.size_item.y)) + ".f});\n\n");
-			}
-		}
-		for (auto& text : texts)
-		{
-			if (text.Form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(text.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(text.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::PushItemWidth(" + std::to_string(static_cast<int>(text.wight)) + ".f);\n");
-				file_builder.append("ImGui::InputText(\"" + text.name_text + "\",\"" + text.same_buffer + "\",25);\n\n");
-			}
-		}
-		for (auto& chk : checkbox)
-		{
-			if (chk.form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(chk.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(chk.Pos_item.y)) + ".f});\n");
-				file_builder.append("static bool var_bool;\n");
-				file_builder.append("ImGui::Checkbox(" + chk.name + ", var_bool);\n\n");
-			}
-		}
-
-		for (auto& tgl : toggle)
-		{
-			if (tgl.form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(tgl.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(tgl.Pos_item.y)) + ".f});\n");
-				file_builder.append("static bool var_tgl;\n");
-				file_builder.append("ToggleButton(" + tgl.name + ", var_tgl);\n\n");
-			}
-		}
-
-		for (auto& radio : Radio)
-		{
-			if (radio.form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(radio.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(radio.Pos_item.y)) + ".f});\n");
-				file_builder.append("static bool var_radio;\n");
-				file_builder.append(" ImGui::RadioButton(\"" + radio.name + "\", var_radio);\n\n");
-			}
-		}
-
-		for (auto& si : SliderI)
-		{
-			if (si.Form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(si.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(si.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::PushItemWidth(" + std::to_string(si.wight) + ".f);\n");
-				file_builder.append("Static int var_int;\n");
-				file_builder.append(" ImGui::SliderInt(\"" + si.name + "\", &var_int, 0,100);\n\n");
-			}
-		}
-		for (auto& sf : SliderF)
-		{
-			if (sf.Form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(sf.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(sf.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::PushItemWidth(" + std::to_string(static_cast<int>(sf.wight)) + ".f);\n");
-				file_builder.append("Static float var_float;\n");
-				file_builder.append("ImGui::SliderFloat(\"" + sf.name + "\", &var_float, 0,100);\n\n");
-			}
-		}
-
-		for (auto& lbl : label)
-		{
-			if (lbl.form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(lbl.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(lbl.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::Text(\"" + lbl.name + "\");\n\n");
-			}
-		}
-
-		for (auto& childer : childs)
-		{
-			if (childer.a.form_id == forms[i].form_id)
-			{
-				file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(childer.a.Pos_item.x)) + ".f," + std::to_string(static_cast<int>(childer.a.Pos_item.y)) + ".f});\n");
-				file_builder.append("ImGui::BeginChild(\"" + childer.a.name + "\",{"
-					+ std::to_string(static_cast<int>(childer.size.x)) + ".f," + std::to_string(static_cast<int>(childer.size.y)) + ".f}, " + std::to_string(childer.border) + ");\n\n\n");
-				file_builder.append("//Move code enter to your group child\n\n\n");
-				file_builder.append("ImGui::EndChild();\n");
-			}
-		}
-
-		file_builder.append("\n");
-		file_builder.append("ImGui::End();");
-		file_builder.append("\n}");
-	}
+	
 
 	std::ofstream file_to_save;
 	std::string name_file = "ImGuiBuilder_";
@@ -2056,6 +1384,5 @@ void ImGuiBuilder::create_builder()
 		file_to_save << i;
 
 	file_to_save.close();
-
 	MessageBoxA(NULL, "Code been generated!", "ImGui Builder", MB_OK | MB_ICONINFORMATION);
 }
