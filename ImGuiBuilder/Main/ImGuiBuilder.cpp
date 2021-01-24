@@ -1,6 +1,10 @@
 #include "ImGuiBuilder.h"
 
+extern HWND wnd;
+
 ImGuiStyle custom_gui_style;
+
+int activeWindowID = 0;
 
 // function
 bool button_ok = false;
@@ -50,6 +54,21 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 		tokens.push_back(token);
 	}
 	return tokens;
+}
+
+bool gaks(int key1, int key2)
+{
+	if (GetAsyncKeyState(key1) && ( GetAsyncKeyState(key2) & 1 ))
+		return true;
+	else
+		return false;
+}
+
+bool is_number(std::string& s)
+{
+	if (s.find(" ") != std::string::npos)
+		s.replace(s.find(" "), 1, "");
+	return std::regex_match(s, std::regex("[+-]?([0-9]*[.])?[0-9]+"));
 }
 
 void PushAllColorsDark(ImGuiStyle dark)
@@ -531,6 +550,7 @@ ImGuiBuilder::ImGuiBuilder()
 	form_.clear();
 	obj_render_me.clear();
 }
+
 //LOAD
 void ImGuiBuilder::loading_builder(std::string& file)
 {
@@ -659,7 +679,6 @@ void ImGuiBuilder::save_building(std::string& file)
 	}
 }
 
-
 void ImGuiBuilder::mainform_draw(HWND wnd)
 {
 	PushAllColorsDark(dark_);
@@ -712,6 +731,42 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::Begin("BUILDER", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
 
+	if (gaks(VK_LCONTROL, 0x56) && wnd == GetForegroundWindow())
+	{
+		OpenClipboard(NULL);
+
+		HANDLE hData = GetClipboardData(CF_TEXT);
+		if (hData == nullptr)
+			goto continue_fn;
+
+		char* pszText = static_cast<char*>(GlobalLock(hData));
+		if (pszText == nullptr)
+			goto continue_fn;
+
+		std::string text(pszText);
+
+		GlobalUnlock(hData);
+
+		CloseClipboard();
+
+		auto o = split(text, ',');
+
+		if (o.size() != 5)
+			goto continue_fn;
+
+		for (int i = 0; i < o.size(); i++)
+		{
+			if (!is_number(o[i]))
+				goto continue_fn;
+		}
+
+		if (std::stoi(o[0]) == 10)
+			create_child(std::stoi(o[1]), std::stof(o[2]), std::stof(o[3]), std::stoi(o[4]));
+		else if (std::stoi(o[0]) > 0 && std::stoi(o[0]) < 9)
+			create_obj(std::stoi(o[0]), std::stoi(o[1]), std::stof(o[3]), std::stof(o[4]), std::stoi(o[2]));
+	}
+
+continue_fn:
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -847,6 +902,14 @@ void ImGuiBuilder::create_child()
 	form_[id_].child.push_back({ child_id, "child" + std::to_string(child_id), id_, true, {50,50}, {15,15} });
 }
 
+void ImGuiBuilder::create_child(int formPai, float sizeX, float sizeY, bool border)
+{
+	// fixed in update...
+	// child id is dinamic to form
+	child_id = form_[id_].child.size();
+	form_[id_].child.push_back({ child_id, "child" + std::to_string(child_id), activeWindowID, border, {sizeX,sizeY}, {15,15} });
+}
+
 void ImGuiBuilder::create_obj(uint16_t type)
 {
 	// create any obj
@@ -886,6 +949,45 @@ void ImGuiBuilder::create_obj(uint16_t type)
 	obj_render_me.push_back(new_obj);
 }
 
+void ImGuiBuilder::create_obj(uint16_t type, int formPai, float sizeX, float sizeY, int childPai) // overload
+{
+	// create any obj
+	obj_id++;
+	std::string name;
+	switch (type)
+	{
+	case 1:
+		name = "button";
+		break;
+	case 2:
+		name = "label";
+		break;
+	case 3:
+		name = "edit";
+		break;
+	case 4:
+		name = "sliderI";
+		break;
+	case 5:
+		name = "sliderF";
+		break;
+	case 6:
+		name = "checkbox";
+		break;
+	case 7:
+		name = "radio";
+		break;
+	case 8:
+		name = "toggle";
+		break;
+	}
+
+	name += std::to_string(obj_id);
+	const simple_obj new_obj = { obj_id, activeWindowID, childPai, name, type, {sizeX, sizeY}, {30,30} };
+	//form_[id_].obj_render_me.push_back(new_obj);
+	obj_render_me.push_back(new_obj);
+}
+
 void ImGuiBuilder::show_form()
 {
 	for (auto& form : form_)
@@ -894,6 +996,10 @@ void ImGuiBuilder::show_form()
 		//	if any other obj is moving position
 		//freezer form because if obj dont have much area for hover like label form move too
 		//
+
+		if (form.delete_me)
+			continue;
+
 		if (moving_obj)
 			ImGui::Begin(form.name.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 		else
@@ -908,6 +1014,13 @@ void ImGuiBuilder::show_form()
 			current_item = form.name + ":" + std::to_string(form.id);
 			family = form.id;
 			type = 0;
+		}
+
+		if (ImGui::IsWindowFocused() || ImGui::IsWindowAppearing() || ImGui::IsWindowHovered())
+		{
+			auto o = split(form.name, 'm');
+			if (o.size() == 2)
+				activeWindowID = std::stoi(o[1]);
 		}
 		
 		//Render obj save him
@@ -1115,12 +1228,20 @@ void ImGuiBuilder::object_property()
 			// it is simply possible to simplify this please do this
 			auto item = n.name + ":" + std::to_string(n.id);
 			const auto is_selected = (current_item == item);
+
+			if (n.delete_me)
+			{
+				index = 00;
+				type = -1;
+			}
+
 			if (ImGui::Selectable(item.c_str(), is_selected))
 			{
 				current_item = item;
-				type = 0;
+				type == -1 ? -1 : 0;
 				family = n.id;
 			}
+
 			for (auto& c : n.child)
 			{
 				item = c.name + ":" + std::to_string(c.id);
@@ -1189,12 +1310,13 @@ void ImGuiBuilder::object_property()
 		ImGui::InputFloat("PosX", &fm.pos.x, 1);
 		ImGui::InputFloat("PosY", &fm.pos.y, 1);
 
-		if (ImGui::Button("APAGAR"))
+		if (ImGui::Button("APAGAR") || GetAsyncKeyState(VK_DELETE) & 1)
 		{
 			fm.delete_me = true;
 			current_item = "";
 			type = -1;
 		}
+
 		form_[family] = fm;
 		break;
 
@@ -1214,12 +1336,32 @@ void ImGuiBuilder::object_property()
 		
 		chl.pos = Move_item(chl.pos, window, chl.change_pos);
 
-		if (ImGui::Button("APAGAR"))
+		if (gaks(VK_LCONTROL, 0x43) && wnd == GetForegroundWindow())
+		{
+			char* buffer = new char[0x300];
+
+			sprintf(buffer, "%d, %d, %f, %f, %d", type, chl.father, chl.size.x, chl.size.y, chl.border);
+
+			OpenClipboard(NULL);
+			EmptyClipboard();
+
+			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(buffer) + 1);
+			memcpy(GlobalLock(hMem), buffer, strlen(buffer) + 1);
+			GlobalUnlock(hMem);
+
+			SetClipboardData(CF_TEXT, hMem);
+			CloseClipboard();
+
+			delete[] buffer;
+		}
+
+		if (ImGui::Button("APAGAR") || GetAsyncKeyState(VK_DELETE) & 1)
 		{
 			chl.delete_me = true;
 			current_item = "";
 			type = -1;
 		}
+
 		form_[family].child[index] = chl;
 		break;
 	default: // another obj
@@ -1251,10 +1393,32 @@ void ImGuiBuilder::object_property()
 			obj.change_pos = true;
 		obj.pos = Move_item(obj.pos, window, obj.change_pos);
 
-		// dont delete here!
-		if (ImGui::Button("APAGAR"))
+		// copy obj
+
+		if (gaks(VK_LCONTROL, 0x43) && wnd == GetForegroundWindow())
 		{
-			obj.delete_me = true; 
+			char* buffer = new char[0x300];
+
+			sprintf(buffer, "%d, %d, %d, %f, %f", type, obj.form, obj.child, 
+				obj.size.x, obj.size.y);
+
+			OpenClipboard(NULL);
+			EmptyClipboard();
+
+			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(buffer) + 1);
+			memcpy(GlobalLock(hMem), buffer, strlen(buffer) + 1);
+			GlobalUnlock(hMem);
+
+			SetClipboardData(CF_TEXT, hMem);
+			CloseClipboard();
+
+			delete[] buffer;
+		}
+
+		// dont delete here!
+		if (ImGui::Button("APAGAR") || GetAsyncKeyState(VK_DELETE) & 1)
+		{
+			obj.delete_me = true;
 			current_item = "";
 			type = -1;
 		}

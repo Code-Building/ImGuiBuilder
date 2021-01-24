@@ -11,6 +11,8 @@ static void glfw_error_callback(int error, const char* description)
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+HWND wnd = 0;
+
 int main(int, char**)
 {
 	// Setup window
@@ -57,7 +59,8 @@ int main(int, char**)
 
 	ImVec4 clear_color = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
 
-	auto wnd = GetForegroundWindow();
+	wnd = GetForegroundWindow();
+
 	ImGuiBuilder my_new_gui;
 
 	while (!glfwWindowShouldClose(window))

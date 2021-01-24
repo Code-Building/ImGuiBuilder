@@ -17,6 +17,8 @@ struct simple_obj
 	bool change_pos = false;
 	bool hover = false;
 	bool delete_me = false;
+
+	bool selected = false;
 };
 
 struct child
@@ -34,6 +36,7 @@ struct child
 	bool delete_me = false;
 	//std::vector<simple_obj> obj_render_me; // is very unstable that
 };
+
 struct form
 {
 	int id = 0;
@@ -71,8 +74,12 @@ public:
 	void render_obj(simple_obj& obj);
 
 	void create_form();
+
 	void create_child();
+	void create_child(int formPai, float sizeX, float sizeY, bool border);
+
 	void create_obj(uint16_t type);
+	void create_obj(uint16_t type, int formPai, float sizeX, float sizeY, int childPai = 0);
 
 	void object_property();
 	void create_builder();
