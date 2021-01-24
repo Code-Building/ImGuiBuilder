@@ -926,8 +926,8 @@ void ImGuiBuilder::paste_obj() //NOT NEED  OVERLOAD FOR THAT!
 
 				if (std::stoi(o[0]) == 10)
 				{
-					child_id = form_[id_].child.size();
-					form_[id_].child.push_back({ child_id, "child" + std::to_string(child_id), activeWindowID, std::stoi(o[4]) != 0, {std::stof(o[2]), std::stof(o[3])}, {15,15} });
+					child_id = form_[activeWindowID].child.size();
+					form_[activeWindowID].child.push_back({ child_id, "child" + std::to_string(child_id), activeWindowID, std::stoi(o[4]) != 0, {std::stof(o[2]), std::stof(o[3])}, {15,15} });
 					std::cout << "child obj\n";
 				}
 				else if (!name.empty())
@@ -1008,9 +1008,9 @@ void ImGuiBuilder::show_form()
 
 		if (ImGui::IsWindowFocused() || ImGui::IsWindowAppearing() || ImGui::IsWindowHovered())
 		{
-			auto o = split(form.name, 'm');
-			if (o.size() == 2)
-				activeWindowID = std::stoi(o[1]);
+			/*auto o = split(form.name, 'm');
+			if (o.size() == 2)*/
+				activeWindowID = form.id;
 		}
 		
 		//Render obj save him
