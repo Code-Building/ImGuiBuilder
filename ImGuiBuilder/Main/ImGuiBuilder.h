@@ -4,6 +4,17 @@
 void ToggleButton(const char* str_id, bool* v);
 void color_editor();
 
+enum type_obj
+{
+	button = 1,
+	label,
+	slider_i,
+	slider_f,
+	checkbox,
+	radio,
+	toggle	
+};
+
 struct simple_obj
 {
 	int id = 0;
@@ -18,7 +29,7 @@ struct simple_obj
 	bool hover = false;
 	bool delete_me = false;
 
-	bool selected = false;
+	//bool selected = false;
 };
 
 struct child
@@ -71,15 +82,18 @@ public:
 	void mainform_draw(HWND wnd);
 
 	void show_form();
+	void delete_form(int form_id);
+	
 	void render_obj(simple_obj& obj);
 
 	void create_form();
 
 	void create_child();
-	void create_child(int formPai, float sizeX, float sizeY, bool border);
+
 
 	void create_obj(uint16_t type);
-	void create_obj(uint16_t type, int formPai, float sizeX, float sizeY, int childPai = 0);
+	void paste_obj();
+	void copy_obj(int type, int child, ImVec2 size, bool border);
 
 	void object_property();
 	void create_builder();
