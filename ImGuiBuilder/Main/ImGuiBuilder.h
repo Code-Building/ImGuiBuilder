@@ -12,7 +12,7 @@ enum type_obj
 	slider_f,
 	checkbox,
 	radio,
-	toggle	
+	toggle
 };
 
 struct simple_obj
@@ -82,13 +82,12 @@ public:
 
 	void show_form();
 	void delete_form(int form_id);
-	
+
 	void render_obj(simple_obj& obj);
 
 	void create_form();
 
 	void create_child();
-
 
 	void create_obj(uint16_t type);
 	void paste_obj();

@@ -17,10 +17,29 @@ std::string style = "Custom.style";
 // Proprity formulary
 std::string current_item;
 int index = 0, family = 0, grandchild = -1;
-int type = -1; // none type
+int type = -1; // none types
 std::string name;
 ImVec2 FormPos{}, itemsize{}, pos_obj{};
 bool moving_obj = false;
+
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+	{
+		// Resize string callback
+		auto str = static_cast<std::string*>(data->UserData);
+		IM_ASSERT(data->Buf == str->c_str());
+		str->resize(data->BufTextLen);
+		data->Buf = const_cast<char*>(str->c_str());
+	}
+	return data->BufSize;
+}
+
+bool input_text(const char* label, std::string* str, ImGuiInputTextFlags flags)
+{
+	flags |= ImGuiInputTextFlags_CallbackResize;
+	return ImGui::InputText(label, const_cast<char*>(str->c_str()), str->capacity() + 1, flags, InputTextCallback, static_cast<void*>(str));
+}
 
 void ToggleButton(const char* str_id, bool* v)
 {
@@ -59,7 +78,7 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 
 bool gaks(int key1, int key2)
 {
-	if (GetAsyncKeyState(key1) && (GetAsyncKeyState(key2) & 1 ))
+	if (GetAsyncKeyState(key1) && (GetAsyncKeyState(key2) & 1))
 		return true;
 	else
 		return false;
@@ -76,7 +95,7 @@ bool is_number(std::string& s)
 	find = s.find('\r');
 	if (find != std::string::npos)
 		s.replace(find, 1, "");
-	
+
 	return std::regex_match(s, std::regex("[+-]?([0-9]*[.])?[0-9]+"));
 }
 
@@ -465,7 +484,7 @@ void color_editor()
 	if (ImGui::Button("Export"))
 	{
 		ImGui::LogToClipboard();
-		
+
 		ImGui::LogText("namespace ImGui {\n void CustomColor() {\n");
 		ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;\n");
 		for (auto i = 0; i < ImGuiCol_COUNT; i++)
@@ -576,7 +595,7 @@ void ImGuiBuilder::loading_builder(std::string& file)
 			form form_load;
 			child child_load;
 			simple_obj obj_load;
-			
+
 			std::getline(f_read, line);
 			if (!line.compare("#forms"))
 			{
@@ -598,21 +617,21 @@ void ImGuiBuilder::loading_builder(std::string& file)
 				menu = 5;
 				continue;
 			}
-			
-				// VAR STRING
+
+			// VAR STRING
 			auto vstr = split(line, ',');
-			switch(menu)
+			switch (menu)
 			{
 			case 0:
-				
+
 				form_load.id = std::stoi(vstr[0]);
 				id_ = form_load.id;
 				form_load.name = vstr[1];
 				form_load.size.x = std::stof(vstr[2]);
 				form_load.size.y = std::stof(vstr[3]);
-				
+
 				form_.push_back(form_load);
-		
+
 				printf("Loading form\n");
 				break;
 
@@ -626,7 +645,7 @@ void ImGuiBuilder::loading_builder(std::string& file)
 				child_load.pos.x = std::stof(vstr[5]);
 				child_load.pos.y = std::stof(vstr[6]);
 				form_[child_load.father].child.push_back(child_load);
-				
+
 				printf("Loading child\n");
 				break;
 
@@ -641,9 +660,9 @@ void ImGuiBuilder::loading_builder(std::string& file)
 				obj_load.size.y = std::stof(vstr[6]);
 				obj_load.pos.x = std::stof(vstr[7]);
 				obj_load.pos.y = std::stof(vstr[8]);
-				
+
 				obj_render_me.push_back(obj_load);
-				
+
 				printf("Loading obj\n");
 				break;
 			default:
@@ -662,33 +681,30 @@ void ImGuiBuilder::save_building(std::string& file)
 
 	if (f_write.is_open())
 	{
-
 		for (const auto& form : form_)
 		{
 			f_write << "#forms\n";
 			f_write << form.id << "," << form.name << "," << form.size.x << "," << form.size.y << "\n";
-			
-			for(const auto& ch : form.child)
+
+			for (const auto& ch : form.child)
 			{
 				f_write << "#child\n";
-				f_write << ch.id << "," << ch.father << "," << ch.name << "," << ch.size.x << "," << ch.size.y <<"," << ch.pos.x << "," << ch.pos.y << "\n";
+				f_write << ch.id << "," << ch.father << "," << ch.name << "," << ch.size.x << "," << ch.size.y << "," << ch.pos.x << "," << ch.pos.y << "\n";
 			}
 
-
-			for(const auto& obj : obj_render_me)
+			for (const auto& obj : obj_render_me)
 			{
-				if(form.id == obj.form)
+				if (form.id == obj.form)
 				{
 					f_write << "#obj\n";
 					f_write << obj.id << "," << obj.form << "," << obj.child << "," << obj.name << "," << obj.my_type << "," << obj.size.x << "," << obj.size.y << "," << obj.pos.x << "," << obj.pos.y << "\n";
 				}
 			}
 		}
-		
+
 		f_write.close();
 	}
 }
-
 
 void ImGuiBuilder::mainform_draw(HWND wnd)
 {
@@ -731,19 +747,17 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 		ImGui::End();
 	}
 
-	if(color_menu)
+	if (color_menu)
 		color_editor();
-	
-	if(style_menu)
-		window_flag(custom_gui_style);
 
+	if (style_menu)
+		window_flag(custom_gui_style);
 
 	paste_obj();
 
 	ImGui::SetNextWindowSize({ static_cast<float>(width - 16), 100 });
 	ImGui::SetNextWindowPos({ 0, 0 });
 	ImGui::Begin("BUILDER", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
-
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -775,7 +789,6 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 			if (ImGui::MenuItem("Color"))
 			{
 				color_menu = !color_menu;
-				
 			}
 
 			if (ImGui::MenuItem("Style"))
@@ -840,7 +853,6 @@ void ImGuiBuilder::mainform_draw(HWND wnd)
 		create_obj(8);
 	}
 
-
 	object_property();
 	PopAllColorsCustom();
 
@@ -886,7 +898,6 @@ std::string get_name_type(const int type)
 	return "";
 }
 
-
 void ImGuiBuilder::create_obj(uint16_t type)
 {
 	// create any obj
@@ -901,7 +912,6 @@ void ImGuiBuilder::create_obj(uint16_t type)
 
 void ImGuiBuilder::paste_obj() //NOT NEED  OVERLOAD FOR THAT!
 {
-	
 	if (gaks(VK_LCONTROL, 'V') && wnd == GetForegroundWindow())
 	{
 		const auto* psz_text = ImGui::GetClipboardText();
@@ -909,43 +919,39 @@ void ImGuiBuilder::paste_obj() //NOT NEED  OVERLOAD FOR THAT!
 		const std::string text(psz_text);
 		auto m_copy = split(text, '\n');
 		ImVec2 pos = { 30,30 };
-		for(const auto& n_text: m_copy)
+		for (const auto& n_text : m_copy)
 		{
 			auto o = split(n_text, ',');
 
 			if (o.size() != 7)
 				return;
-			
-				for(auto tx : o)
-				{
-					if (!is_number(tx))
-						return;
-				}
-				
-				
-				auto name = get_name_type(std::stoi(o[0]));
 
+			for (auto tx : o)
+			{
+				if (!is_number(tx))
+					return;
+			}
 
-				if (std::stoi(o[0]) == 10)
-				{
-					child_id = form_[activeWindowID].child.size();
-					form_[activeWindowID].child.push_back({ child_id, "child" + std::to_string(child_id), activeWindowID, std::stoi(o[4]) != 0, {std::stof(o[2]), std::stof(o[3])}, {std::stof(o[4]), std::stof(o[5])} });
-					std::cout << "child obj\n";
-				}
-				else if (!name.empty())
-				{
-					obj_id++;
-					name += std::to_string(obj_id);
-					const simple_obj new_obj = { obj_id, activeWindowID, std::stoi(o[1]), name,std::stoi(o[0]) , {std::stof(o[3]), std::stof(o[4])}, {std::stof(o[5]), std::stof(o[6])} };
-					obj_render_me.push_back(new_obj);
-					std::cout << "paste obj\n";
-				}
-				pos.x += 15;
-				pos.y += 15;
+			auto name = get_name_type(std::stoi(o[0]));
+
+			if (std::stoi(o[0]) == 10)
+			{
+				child_id = form_[activeWindowID].child.size();
+				form_[activeWindowID].child.push_back({ child_id, "child" + std::to_string(child_id), activeWindowID, std::stoi(o[4]) != 0, {std::stof(o[2]), std::stof(o[3])}, {std::stof(o[4]), std::stof(o[5])} });
+				std::cout << "child obj\n";
+			}
+			else if (!name.empty())
+			{
+				obj_id++;
+				name += std::to_string(obj_id);
+				const simple_obj new_obj = { obj_id, activeWindowID, std::stoi(o[1]), name,std::stoi(o[0]) , {std::stof(o[3]), std::stof(o[4])}, {std::stof(o[5]), std::stof(o[6])} };
+				obj_render_me.push_back(new_obj);
+				std::cout << "paste obj\n";
+			}
+			pos.x += 15;
+			pos.y += 15;
 		}
-		
 	}
-	
 }
 
 void ImGuiBuilder::copy_obj(const int type, const int child, const ImVec2 size, const ImVec2 pos, const bool border, bool selected)
@@ -954,25 +960,24 @@ void ImGuiBuilder::copy_obj(const int type, const int child, const ImVec2 size, 
 	{
 		std::string buffer;
 		ImGui::LogToClipboard();
-		if(!selected)
+		if (!selected)
 		{
 			if (type == 10) // is child
-				buffer = std::to_string(type) + ",0," + std::to_string(size.x) + "," + std::to_string(size.y) + ","  + std::to_string(pos.x) + "," + std::to_string(pos.y) + "," + std::to_string(border);
+				buffer = std::to_string(type) + ",0," + std::to_string(size.x) + "," + std::to_string(size.y) + "," + std::to_string(pos.x) + "," + std::to_string(pos.y) + "," + std::to_string(border);
 			else
-				buffer = std::to_string(type) + "," + std::to_string(child) + ",0," + std::to_string(size.x) + "," + std::to_string(size.y) + "," +std::to_string(pos.x) + "," + std::to_string(pos.y);
-
+				buffer = std::to_string(type) + "," + std::to_string(child) + ",0," + std::to_string(size.x) + "," + std::to_string(size.y) + "," + std::to_string(pos.x) + "," + std::to_string(pos.y);
 		}
 		else
 		{
-			for(auto& copy : obj_render_me)
+			for (auto& copy : obj_render_me)
 			{
-				if(copy.selected)
+				if (copy.selected)
 				{
 					//if (type == 10) // is child
 					//	buffer += std::to_string(type) + ",0," + std::to_string(size.x) + "," + std::to_string(size.y) + "," + std::to_string(border) + "\n";
 					//else // other obj
-						buffer += std::to_string(copy.my_type) + "," + std::to_string(copy.child) + ",0," + std::to_string(copy.size.x) + "," + std::to_string(copy.size.y) + 
-						", " + std::to_string(copy.pos.x) + ", " + std::to_string(copy.pos.y) +"\n";
+					buffer += std::to_string(copy.my_type) + "," + std::to_string(copy.child) + ",0," + std::to_string(copy.size.x) + "," + std::to_string(copy.size.y) +
+						", " + std::to_string(copy.pos.x) + ", " + std::to_string(copy.pos.y) + "\n";
 				}
 			}
 		}
@@ -982,12 +987,10 @@ void ImGuiBuilder::copy_obj(const int type, const int child, const ImVec2 size, 
 	}
 }
 
-
 void ImGuiBuilder::show_form()
 {
 	for (auto& form : form_)
 	{
-	
 		ImGui::SetNextWindowSize(form.size);
 		//	if any other obj is moving position
 		//freezer form because if obj dont have much area for hover like label form move too
@@ -998,19 +1001,16 @@ void ImGuiBuilder::show_form()
 			delete_form(form.id);
 			break;
 		}
-			
-		ImGui::Begin(form.name.c_str(), nullptr, moving_obj? ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoMouseInputs : ImGuiWindowFlags_NoCollapse );
 
-		if(moving_obj)
-			ImGui::SetWindowPos(form.pos);
-		else
-			form.pos = ImGui::GetWindowPos(); // get value position form
+		ImGui::Begin(form.name.c_str(), nullptr, moving_obj ? ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove : ImGuiWindowFlags_NoCollapse);
+
+		form.pos = ImGui::GetWindowPos(); // get value position form
 		form.size = ImGui::GetWindowSize(); // get value size form
 
-		// get propriety of form with user double click mouse 
+		// get propriety of form with user double click mouse
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseDoubleClicked(0))
 		{
-			name = form.name;
+			name = const_cast<char*>(form.name.c_str());
 			current_item = form.name + ":" + std::to_string(form.id);
 			family = form.id;
 			type = 0;
@@ -1020,7 +1020,7 @@ void ImGuiBuilder::show_form()
 		{
 			activeWindowID = form.id;
 		}
-		
+
 		//Render obj save him
 		for (auto& obj : obj_render_me)
 		{
@@ -1084,13 +1084,12 @@ void ImGuiBuilder::show_form()
 void ImGuiBuilder::delete_form(int form_id)
 {
 	form_.erase(form_.begin() + form_id);
-	id_ = form_.size()-1;
+	id_ = form_.size() - 1;
 	std::cout << "size id " << id_ << std::endl;
 
-	
-	for(const auto& obj : obj_render_me)
+	for (const auto& obj : obj_render_me)
 	{
-		if(obj.form == form_id)
+		if (obj.form == form_id)
 		{
 			obj_render_me.erase(obj_render_me.begin() + obj.id);
 			obj_id = obj_render_me.size() - 1;
@@ -1108,11 +1107,10 @@ void ImGuiBuilder::delete_form(int form_id)
 			if (obj.form == form_[id].id)
 				obj.form = id;
 		}
-		
+
 		form_[id].id = id;
 		std::cout << "Forms id: " << form_[id].id << std::endl;
 	}
-	
 }
 
 void ImGuiBuilder::render_obj(simple_obj& obj)
@@ -1128,7 +1126,7 @@ void ImGuiBuilder::render_obj(simple_obj& obj)
 		// reform id objs
 		obj_id = obj_render_me.size() - 1;
 		// previous object, before rendering the others
-		for (auto new_id = obj.id-1; new_id < obj_render_me.size(); ++new_id)
+		for (auto new_id = obj.id - 1; new_id < obj_render_me.size(); ++new_id)
 		{
 			obj_render_me[new_id].id = new_id;
 			//std::cout << obj_render_me[new_id].id << std::endl;
@@ -1145,14 +1143,13 @@ void ImGuiBuilder::render_obj(simple_obj& obj)
 	float valueF = 0;
 	static bool true_bool = false;
 
-	
 	if (obj.selected)
 	{
 		ImGui::PushStyleColor(0, { 0,100,255,80 });
 		ImGui::PushStyleColor(21, { 255,0,0,80 });
 		ImGui::PushStyleColor(7, { 255,0,0,80 });
 	}
-		
+
 	// render obj
 	switch (obj.my_type)
 	{
@@ -1187,7 +1184,7 @@ void ImGuiBuilder::render_obj(simple_obj& obj)
 	}
 	if (obj.selected)
 	{
-			ImGui::PopStyleColor(3);
+		ImGui::PopStyleColor(3);
 	}
 
 	// get size and hover of object
@@ -1201,9 +1198,9 @@ void ImGuiBuilder::render_obj(simple_obj& obj)
 		else
 		{
 			for (auto& o_obj : obj_render_me)
-			o_obj.selected = false;
+				o_obj.selected = false;
 		}
-		
+
 		current_item = obj.name + ':' + std::to_string(obj.id);
 		family = obj.form;
 		grandchild = obj.child;
@@ -1224,32 +1221,46 @@ std::vector<move_obj> mto;
 std::vector<ImVec2> old_pos_obj;
 std::vector<move_obj> Move_item(std::vector<move_obj>& mto, const HWND window, bool& continue_edt)
 {
-	if (old_pos.x == 0 && count_pos == 0)
+	if (old_pos.x == 0 && count_pos == 2)
 	{
 		old_pos_obj.clear();
 		GetCursorPos(&old_pos);
 		ScreenToClient(GetForegroundWindow(), &old_pos);
-		for(auto &i : mto)
-		old_pos_obj.push_back(i.pos);
-	}else
+		for (auto& i : mto)
+			old_pos_obj.push_back(i.pos);
+	}
+	else
 		++count_pos;
-	
-		
 
 	moving_obj = true;
-	if (GetAsyncKeyState(VK_LBUTTON) && window == GetForegroundWindow() && continue_edt)
+	if (GetAsyncKeyState(VK_LBUTTON) || GetAsyncKeyState(VK_RBUTTON) && window == GetForegroundWindow() && continue_edt)
 	{
 		if (count_pos >= 10) // click and secure for 5 frames 30x5 ms
 		{
 			for (size_t i = 0; i < mto.size(); ++i)
 			{
+				/// <summary>
+				///  work fine but have same bugs not yet fixed pls if you see that try fix
+				/// </summary>
+				/// <param name="mto"></param>
+				/// <param name="window"></param>
+				/// <param name="continue_edt"></param>
+				/// <returns></returns>
+
+				if (mto.size() != old_pos_obj.size())
+				{
+					count_pos = -10;
+					moving_obj = false;
+
+					return mto;
+				}
+
 				POINT pos;
 				GetCursorPos(&pos);
 				ScreenToClient(GetForegroundWindow(), &pos);
 				if (old_pos_obj[i].x == 0 || old_pos_obj[i].y == 0)
 					return mto;
 
-				
 				const auto x_pos = old_pos_obj[i].x + pos.x - old_pos.x;
 				const auto y_pos = old_pos_obj[i].y + pos.y - old_pos.y;
 				mto[i].pos.x = x_pos;
@@ -1257,7 +1268,6 @@ std::vector<move_obj> Move_item(std::vector<move_obj>& mto, const HWND window, b
 				continue_edt = true;
 				//std::cout << "moving multiply obj\n";
 			}
-		
 		}
 	}
 	else
@@ -1268,24 +1278,24 @@ std::vector<move_obj> Move_item(std::vector<move_obj>& mto, const HWND window, b
 		count_pos = 0;
 		old_pos = { 0, 0 };
 	}
+	std::cout << "[GROUP MOVING]X " << mto[0].pos.x << " Y  " << mto[0].pos.y << std::endl;
 	return mto;
 }
 
 ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 {
-
-	moving_obj = true;
 	if (old_pos.x == 0 && count_pos == 0)
 	{
 		GetCursorPos(&old_pos);
 		ScreenToClient(GetForegroundWindow(), &old_pos);
 		pos_obj = obj_pos;
-	}else
-	{
-		++count_pos;
 	}
+	else
+		++count_pos;
 
-	if (GetAsyncKeyState(VK_LBUTTON) && window == GetForegroundWindow() && continue_edt)
+	moving_obj = true;
+
+	if ((GetAsyncKeyState(VK_LBUTTON) || GetAsyncKeyState(VK_RBUTTON)) && window == GetForegroundWindow() && continue_edt)
 	{
 		if (count_pos >= 5) // click and secure for 5 frames 30x5 ms
 		{
@@ -1293,7 +1303,11 @@ ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 			GetCursorPos(&pos);
 			ScreenToClient(GetForegroundWindow(), &pos);
 			if (pos_obj.y == 0 || pos_obj.x == 0)
-				return obj_pos;
+			{
+				count_pos = -10;// try later geting cursor and original obj pos
+				moving_obj = false;
+			}
+
 			//pos.x -= FormPos.x + itemsize.x / 2; // set cursor center of obj
 			//pos.y -= FormPos.y + itemsize.y / 2;
 			//
@@ -1315,23 +1329,26 @@ ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 			//	no need form pos
 			//	no need size of obj simple and direct!
 
-			
-			const auto x_pos = pos_obj.x + pos.x -old_pos.x;
-			const auto y_pos = pos_obj.y + pos.y -old_pos.y;
-			obj_pos.x = x_pos;
-			obj_pos.y = y_pos;
-			//std::cout << "moving one obj\n";
+			pos.x -= FormPos.x + itemsize.x / 2; // set cursor center of obj
+			pos.y -= FormPos.y + itemsize.y / 2;
+			obj_pos.x = static_cast<float>(pos.x);
+			obj_pos.y = static_cast<float>(pos.y);
+			//const auto x_pos = pos_obj.x + pos.x -old_pos.x;
+			//const auto y_pos = pos_obj.y + pos.y -old_pos.y;
+			//obj_pos.x = pos.x;
+			//obj_pos.y = pos.y;
 			continue_edt = true;
 		}
 	}
 	else
 	{
-		pos_obj = {0,0};
+		pos_obj = { 0,0 };
 		moving_obj = false;
 		continue_edt = false;
 		count_pos = 0;
 		old_pos = { 0, 0 };
 	}
+	std::cout << "[NORMAL MOVING]X " << obj_pos.x << " Y  " << obj_pos.y << std::endl;
 	return obj_pos;
 }
 ImVec2 Move_item(ImVec2 Obj_pos, HWND window) // overload
@@ -1339,7 +1356,6 @@ ImVec2 Move_item(ImVec2 Obj_pos, HWND window) // overload
 	auto hover_emulation = true;
 	return  Move_item(Obj_pos, window, hover_emulation);
 }
-
 
 void ImGuiBuilder::object_property()
 {
@@ -1353,7 +1369,6 @@ void ImGuiBuilder::object_property()
 
 		for (auto& n : form_)
 		{
-
 			if (n.delete_me)
 			{
 				break;
@@ -1363,10 +1378,9 @@ void ImGuiBuilder::object_property()
 			auto item = n.name + ":" + std::to_string(n.id);
 			const auto is_selected = (current_item == item);
 
-
 			if (ImGui::Selectable(item.c_str(), is_selected))
 			{
-				name = n.name;
+				name = const_cast<char*>(n.name.c_str());
 				current_item = item;
 				type = 0;
 				family = n.id;
@@ -1396,10 +1410,9 @@ void ImGuiBuilder::object_property()
 			{
 				break;
 			}
-			
+
 			auto item = o.name + ":" + std::to_string(o.id);
 			const auto is_selected = (current_item == item);
-
 
 			item = o.name + ":" + std::to_string(o.id);
 			if (ImGui::Selectable(item.c_str(), is_selected))
@@ -1411,13 +1424,10 @@ void ImGuiBuilder::object_property()
 				current_item = item;
 			}
 
-
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
 
-
-		
 		ImGui::EndCombo();
 	}
 
@@ -1435,9 +1445,10 @@ void ImGuiBuilder::object_property()
 	case 0: // form
 		fm = form_[family];
 		ImGui::InputInt("ID", &fm.id, 0);
-		
-		ImGui::InputText("name form", const_cast<char*>(name.c_str()), 100);
-		if(ImGui::Button("Apply name"))
+
+		input_text("Name form", &name, 0);
+		//ImGui::InputText("name form", name, 255);
+		if (ImGui::Button("Apply name"))
 		{
 			fm.name = name;
 		}
@@ -1470,12 +1481,11 @@ void ImGuiBuilder::object_property()
 		itemsize = chl.size;
 		if (chl.hover)
 			chl.change_pos = true;
-		
+
 		chl.pos = Move_item(chl.pos, window, chl.change_pos);
 
-		copy_obj(10,0, chl.size, chl.pos, chl.border, obj.selected);
+		copy_obj(10, 0, chl.size, chl.pos, chl.border, obj.selected);
 
-		
 		if (ImGui::Button("DELETE") || GetAsyncKeyState(VK_DELETE) & 1)
 		{
 			chl.delete_me = true;
@@ -1486,7 +1496,7 @@ void ImGuiBuilder::object_property()
 		form_[family].child[index] = chl;
 		break;
 	default: // another obj
-		
+
 		if (grandchild > -1)
 		{
 			obj = obj_render_me[index];
@@ -1496,59 +1506,55 @@ void ImGuiBuilder::object_property()
 		}
 		else
 		{
-			if(obj_render_me.size() > static_cast<unsigned>(index))
+			if (obj_render_me.size() > static_cast<unsigned>(index))
 			{
 				obj = obj_render_me[index];
 				FormPos = form_[family].pos;
 			}
-
 		}
 
 		itemsize = obj.size_obj;
 		ImGui::InputInt("ID", &obj.id, 0);
 		ImGui::InputInt("Form Father", &obj.form, 1);
 		ImGui::InputInt("Child Father", &obj.child, 1);
-		ImGui::InputText("Name", const_cast<char*>(obj.name.c_str()), 255);
+		input_text("Name", &obj.name, 0);
+		//ImGui::InputText("Name", name, 255);
 		ImGui::InputFloat("PosX", &obj.pos.x, 1, 1);
 		ImGui::InputFloat("PosY", &obj.pos.y, 1, 1);
 		ImGui::InputFloat("SizeX", &obj.size.x, 1, 1);
 		ImGui::InputFloat("SizeY", &obj.size.y, 1, 1);
 
+		//obj.name = name;
 		// check if hover because need for change position
 		if (obj.hover)
 			obj.change_pos = true;
 
-		if(obj.selected)
+		if (obj.selected)
 		{
 			mto.clear();
-			for(auto& r_obj : obj_render_me)
+			for (auto& r_obj : obj_render_me)
 			{
-				if(r_obj.selected == true)
+				if (r_obj.selected == true)
 				{
 					mto.push_back({ r_obj.id, r_obj.pos });
 				}
 			}
 
 			Move_item(mto, window, obj.change_pos);
-			
-			for (auto &teste : mto)
+
+			for (auto& teste : mto)
 			{
-				if(obj.id == teste.index)
+				if (obj.id == teste.index)
 					obj.pos = teste.pos;
 				else
 					obj_render_me[teste.index].pos = teste.pos;
 			}
-
-			
-			
-		}else
+		}
+		else
 			obj.pos = Move_item(obj.pos, window, obj.change_pos);
 
-		
+		copy_obj(obj.my_type, obj.child, obj.size, obj.pos, false, obj.selected);
 
-		copy_obj(obj.my_type, obj.child, obj.size, obj.pos,false, obj.selected);
-
-		
 		// dont delete here!
 		if (ImGui::Button("DELETE") || GetAsyncKeyState(VK_DELETE) & 1)
 		{
@@ -1567,7 +1573,6 @@ void ImGuiBuilder::object_property()
 
 void ImGuiBuilder::create_builder()
 {
-
 	static int fctn = 0;
 	file_builder = "";
 
@@ -1577,23 +1582,21 @@ void ImGuiBuilder::create_builder()
 	file_builder.append("  *v = !*v;\nImU32 col_bg;\nif (ImGui::IsItemHovered())\n\t  col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);\n");
 	file_builder.append(" else\n\t   col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);\n  draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);\n   draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));\n}\n\n\n");
 
-	
-	
-	for(const auto &form: form_)
+	for (const auto& form : form_)
 	{
 		file_builder.append("void gui_builder" + std::to_string(fctn) + "()\n{\n");
 		file_builder.append("ImGui::SetNextWindowSize({" + std::to_string(static_cast<int>(form.size.x)) + ".f," + std::to_string(static_cast<int>(form.size.y)) + ".f});\n");
 		file_builder.append("\nImGui::Begin( \"" + form.name + "\");\n");
-		
-		for(const auto &obj : obj_render_me)
+
+		for (const auto& obj : obj_render_me)
 		{
-			for(const auto& chl : form.child)
+			for (const auto& chl : form.child)
 			{
 				//obj with child
 				if (obj.child == chl.id)
 				{
-					file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(chl.pos.x)) + ".f," + std::to_string(static_cast<int>(chl.pos.y)) + ".f});\n");				
-					file_builder.append("ImGui::BeginChild(\"" + chl.name + "\",{" + std::to_string(static_cast<int>(chl.size.x)) + ".f," + std::to_string(static_cast<int>(chl.size.y)) +".f},true );");
+					file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(chl.pos.x)) + ".f," + std::to_string(static_cast<int>(chl.pos.y)) + ".f});\n");
+					file_builder.append("ImGui::BeginChild(\"" + chl.name + "\",{" + std::to_string(static_cast<int>(chl.size.x)) + ".f," + std::to_string(static_cast<int>(chl.size.y)) + ".f},true );");
 					if (obj.child == chl.id && obj.form == form.id && chl.father == form.id)
 					{
 						file_builder.append("ImGui::SetCursorPos({" + std::to_string(static_cast<int>(obj.pos.x)) + ".f," + std::to_string(static_cast<int>(obj.pos.y)) + ".f});\n");
@@ -1631,7 +1634,7 @@ void ImGuiBuilder::create_builder()
 					file_builder.append("\nImGui::EndChild();");
 				}
 			}
-			
+
 			//obj none child
 			if (obj.child == -1 && obj.form == form.id)
 			{
@@ -1668,11 +1671,10 @@ void ImGuiBuilder::create_builder()
 				}
 			}
 		}
-		
+
 		file_builder.append("\n\nImGui::End();\n}\n\n\n");
-		fctn+=1;
+		fctn += 1;
 	}
-	
 
 	std::ofstream file_to_save;
 	std::string name_file = "ImGuiBuilder_";
