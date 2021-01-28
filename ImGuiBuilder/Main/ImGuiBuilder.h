@@ -28,8 +28,7 @@ struct simple_obj
 	bool change_pos = false;
 	bool hover = false;
 	bool delete_me = false;
-
-	//bool selected = false;
+	bool selected = false;
 };
 
 struct child
@@ -93,7 +92,7 @@ public:
 
 	void create_obj(uint16_t type);
 	void paste_obj();
-	void copy_obj(int type, int child, ImVec2 size, bool border);
+	void copy_obj(const int type, const int child, const ImVec2 size, const ImVec2 pos, const bool border, bool selected);
 
 	void object_property();
 	void create_builder();
