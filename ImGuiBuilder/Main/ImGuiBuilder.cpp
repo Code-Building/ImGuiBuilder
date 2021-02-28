@@ -1450,7 +1450,8 @@ void ImGuiBuilder::object_property()
 		//ImGui::InputText("name form", name, 255);
 		if (ImGui::Button("Apply name"))
 		{
-			fm.name = name;
+			if(name != "")
+				fm.name = name;
 		}
 		ImGui::InputFloat("SizeX", &fm.size.x, 1);
 		ImGui::InputFloat("SizeY", &fm.size.y, 1);
