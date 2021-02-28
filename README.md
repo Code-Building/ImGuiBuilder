@@ -1,14 +1,26 @@
 # IMGUI BUILDER
 
-"O projeto consite em um editor em gui da framework do Dear Imgui"
+The project consists a gui editor of the Imgui framework
 
 
 ## EDITOR
-Consiste em alguns elementos principais onde você consegue editor visualmente as partes de prioridade do elemento tendo em si o **nome**, **tamanho**, **posição** e **ETC- IMGUI EDITOR**
-	
-O **editor de cores** permite editar as cores referente as tabelas do imgui a exportação é feita pelo copy do sistema pode salvar e carregar edições de outras ou posteriores já feitas
-
 ![imgui_capture_0008](https://cdn.discordapp.com/attachments/729202164504854628/802426214979469322/vmcV3yL.gif)
 
-## Exportar IMGUI
-Gerar código: Apos toda a criação visual, você pode gerar o arquivo .cpp para utilizar a edição que você fez
+## Menu Export
+
+### 1 - Export cpp file
+
+![exportmenu](https://i.imgur.com/AJdNJho.gif)
+
+ ### 2 - Cpp file
+
+![](https://i.imgur.com/BbnjqXu.gif)
+
+## Credits 
+Credits for [Shadowy](https://github.com/SrShadowy) , [zimzika](https://github.com/zimzika), [SmoLL-iCe](https://github.com/SmoLL-iCe), [apr3ndi5](https://github.com/apr3ndi5) and every direct or indirect [Contributors](https://github.com/Code-Building/ImGuiBuilder/graphs/contributors)
+
+Credits for [Ocornut](https://github.com/ocornut) for [Imgui](https://github.com/ocornut/imgui)
+
+## License
+
+ImGui Builder is licensed under the MIT License, see [Licese](https://github.com/Code-Building/ImGuiBuilder/blob/main/LICENSE) for more information.
