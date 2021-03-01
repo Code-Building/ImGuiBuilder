@@ -17,10 +17,10 @@ The project consists a gui editor of the Imgui framework
 ![](https://i.imgur.com/BbnjqXu.gif)
 
 ## Credits 
-Credits for [Shadowy](https://github.com/SrShadowy) , [zimzika](https://github.com/zimzika), [SmoLL-iCe](https://github.com/SmoLL-iCe), [apr3ndi5](https://github.com/apr3ndi5) and every direct or indirect [Contributors](https://github.com/Code-Building/ImGuiBuilder/graphs/contributors)
+Credits for [Shadowy](https://github.com/SrShadowy) , [HuhRyan](https://github.com/zimzika), [SmoLL-iCe](https://github.com/SmoLL-iCe), [apr3ndi5](https://github.com/apr3ndi5) and every direct or indirect [Contributors](https://github.com/Code-Building/ImGuiBuilder/graphs/contributors)
 
 Credits for [Ocornut](https://github.com/ocornut) for [Imgui](https://github.com/ocornut/imgui)
 
 ## License
 
-ImGui Builder is licensed under the MIT License, see [Licese](https://github.com/Code-Building/ImGuiBuilder/blob/main/LICENSE) for more information.
+ImGui Builder is licensed under the MIT License, see [License](https://github.com/Code-Building/ImGuiBuilder/blob/main/LICENSE) for more information.
