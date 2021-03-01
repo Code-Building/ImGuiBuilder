@@ -1,9 +1,7 @@
 #include "ImGuiBuilder.h"
 
 extern HWND wnd;
-
 ImGuiStyle custom_gui_style;
-
 int activeWindowID = 0;
 
 // function
@@ -1087,28 +1085,42 @@ void ImGuiBuilder::delete_form(int form_id)
 	id_ = form_.size() - 1;
 	std::cout << "size id " << id_ << std::endl;
 
-	for (const auto& obj : obj_render_me)
+	if(!obj_render_me.empty())
 	{
-		if (obj.form == form_id)
+		for (auto i = obj_render_me.size()-1; i > 0; --i)
 		{
-			obj_render_me.erase(obj_render_me.begin() + obj.id);
-			obj_id = obj_render_me.size() - 1;
-			for (auto new_id = obj.id - 1; new_id < obj_render_me.size(); ++new_id)
+			std::cout << i << std::endl;
+			if(obj_render_me[i].form == form_id)
 			{
-				obj_render_me[new_id].id = new_id;
+				std::cout << "obj id: " << i << " \tname: " << obj_render_me[i].name << std::endl;
+				obj_render_me.erase(obj_render_me.begin() + i);
+				
+				obj_id = obj_render_me.size() - 1;
+				for(auto x = i -1; x < obj_render_me.size(); ++x)
+				{
+					if (x < 0) continue;
+					
+					std::cout << "obj id: " << obj_render_me[x].id << " \tto: " << x << " \tFather: " << obj_render_me[x].form << std::endl;
+					obj_render_me[x].id = x;
+					/*if(obj_render_me[x].form == form_id+1)
+						obj_render_me[x].form = form_id;*/
+					
+				}
 			}
 		}
 	}
-
-	for (size_t id = form_id - 1; id < form_.size(); ++id)
+	
+	for (auto id = (form_id - 1); id_ >= id; ++id)
 	{
+		if (id < 0)
+			continue;
+		form_[id].id = id;
 		for (auto& obj : obj_render_me)
 		{
 			if (obj.form == form_[id].id)
 				obj.form = id;
 		}
-
-		form_[id].id = id;
+		
 		std::cout << "Forms id: " << form_[id].id << std::endl;
 	}
 }
@@ -1278,7 +1290,7 @@ std::vector<move_obj> Move_item(std::vector<move_obj>& mto, const HWND window, b
 		count_pos = 0;
 		old_pos = { 0, 0 };
 	}
-	std::cout << "[GROUP MOVING]X " << mto[0].pos.x << " Y  " << mto[0].pos.y << std::endl;
+	//std::cout << "[GROUP MOVING]X " << mto[0].pos.x << " Y  " << mto[0].pos.y << std::endl;
 	return mto;
 }
 
@@ -1308,35 +1320,11 @@ ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 				moving_obj = false;
 			}
 
-			//pos.x -= FormPos.x + itemsize.x / 2; // set cursor center of obj
-			//pos.y -= FormPos.y + itemsize.y / 2;
-			//
-			//
-			//obj_pos.x = static_cast<float>(pos.x);
-			//obj_pos.y = static_cast<float>(pos.y);
-			//
-			//pos_obj + pos_cursor = push obj to diference of obj and cursor
-			//pos_obj - init_pos_cursor = push obj to obj to diference of obj and cursor  (negative form)
-			//
-			//So
-			//	if pos cursor - init cursor pos is zero and pos obj init is 10 cursor permen in the obj position
-			//
-			//	but if calculos is negative beetwen error
-			//
-			//	phps if i pos_obj + cursor - old_cursor
-			//
-			//
-			//	no need form pos
-			//	no need size of obj simple and direct!
-
 			pos.x -= FormPos.x + itemsize.x / 2; // set cursor center of obj
 			pos.y -= FormPos.y + itemsize.y / 2;
 			obj_pos.x = static_cast<float>(pos.x);
 			obj_pos.y = static_cast<float>(pos.y);
-			//const auto x_pos = pos_obj.x + pos.x -old_pos.x;
-			//const auto y_pos = pos_obj.y + pos.y -old_pos.y;
-			//obj_pos.x = pos.x;
-			//obj_pos.y = pos.y;
+			
 			continue_edt = true;
 		}
 	}
@@ -1348,7 +1336,7 @@ ImVec2 Move_item(ImVec2 obj_pos, HWND window, bool& continue_edt)
 		count_pos = 0;
 		old_pos = { 0, 0 };
 	}
-	std::cout << "[NORMAL MOVING]X " << obj_pos.x << " Y  " << obj_pos.y << std::endl;
+	//std::cout << "[NORMAL MOVING]X " << obj_pos.x << " Y  " << obj_pos.y << std::endl;
 	return obj_pos;
 }
 ImVec2 Move_item(ImVec2 Obj_pos, HWND window) // overload
@@ -1450,8 +1438,7 @@ void ImGuiBuilder::object_property()
 		//ImGui::InputText("name form", name, 255);
 		if (ImGui::Button("Apply name"))
 		{
-			if(name != "")
-				fm.name = name;
+			if(!name.empty()) fm.name = name;
 		}
 		ImGui::InputFloat("SizeX", &fm.size.x, 1);
 		ImGui::InputFloat("SizeY", &fm.size.y, 1);
@@ -1472,7 +1459,15 @@ void ImGuiBuilder::object_property()
 		chl = form_[family].child[index];
 		FormPos = form_[family].pos;
 		ImGui::InputInt("ID", &chl.id, 0);
-		ImGui::InputInt("Form Father", &chl.father, 1);
+
+		
+		if(ImGui::InputInt("Form Father", &chl.father, 1))
+		{
+			form_[chl.father].child.push_back(chl);
+			chl.delete_me = true;
+			current_item = "";
+			type = -1;
+		}
 
 		ImGui::InputFloat("SizeX", &chl.size.x, 1);
 		ImGui::InputFloat("SizeY", &chl.size.y, 1);
