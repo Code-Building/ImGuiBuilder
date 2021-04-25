@@ -17,10 +17,10 @@
     - Improved the definition of object selection by placing a border.
     - Improved the system of moving only if the mouse click is held.
     - Movement of forms is now only by title, avoid moving the form when trying to move a control.
-    - ~~Move child only at the border of the embroidery.~~ 
-    - __The Code was organized__ 
+    - Move child only at the border of the embroidery.
+    - The Code was organized
 
 ## - Added.
-    - Added to save and open settings, [ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog/tree/d331d139ecd026ef45f2ba03175182e29f6aef56)
+    - Added to save and open settings, ImGuiFileDialog
     - Added the option to resize the controls.
     - Added a context menu when right clicking on a control, having the options to delete, copy and others. 
