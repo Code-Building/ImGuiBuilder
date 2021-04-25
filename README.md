@@ -4,13 +4,13 @@ The project consists a gui editor of the Imgui framework
 
 
 ## EDITOR
-![imgui_capture_0008](https://cdn.discordapp.com/attachments/729202164504854628/802426214979469322/vmcV3yL.gif)
+![imgui_capture_0008](https://cdn.discordapp.com/attachments/729202164504854628/835722424926076988/T6mCOMXBWu.gif)
 
 ## Menu Export
 
 ### 1 - Export cpp file
 
-![exportmenu](https://i.imgur.com/AJdNJho.gif)
+![exportmenu](https://cdn.discordapp.com/attachments/729202164504854628/835722472300216381/EkL341h9n3.gif)
 
  ### 2 - Cpp file
 
