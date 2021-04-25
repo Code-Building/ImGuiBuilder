@@ -1,0 +1,15 @@
+#pragma once
+#include <Windows.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <cstdio>
+#include <regex>
+#include <fstream>
+#include <sstream>
+#include <imgui.h>
+#include <opengl/imgui_impl_glfw.h>
+#include <opengl/imgui_impl_opengl3.h>
+#include <GL/gl3w.h>
+#include <GLFW/glfw3.h>

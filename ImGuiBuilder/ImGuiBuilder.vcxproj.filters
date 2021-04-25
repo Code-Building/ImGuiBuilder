@@ -1,91 +1,154 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
+    <Filter Include="utils">
+      <UniqueIdentifier>{c3758a97-89ee-427b-a934-65b8eb79aa38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{222fa3c6-422e-4dd3-a7fd-2478d9ba30ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party">
+      <UniqueIdentifier>{6550d4b1-f0e5-4f4f-a47a-033ab154a23d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\ImGui">
+      <UniqueIdentifier>{42008b09-56be-40d5-a89e-ec60e7656d7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\ImGui\gl3w">
+      <UniqueIdentifier>{65d3755f-ee3b-4a0a-b1cf-251c8a8254c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\ImGui\glfw">
+      <UniqueIdentifier>{5400c1ce-1617-4c62-abd7-ff45d5bcf842}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\ImGui\usynergy">
+      <UniqueIdentifier>{373b5897-8c08-4b56-b3fb-ec663b846edc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\ImGui\opengl">
+      <UniqueIdentifier>{a05e80c0-ee3d-4db9-b55f-88002a5cfbb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main">
       <UniqueIdentifier>{df6926c5-b382-451e-8682-2b7338932371}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{20b90ce4-7fcb-4731-b9a0-075f875de82d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ImGui\ImGuiGL">
-      <UniqueIdentifier>{f18ab499-84e1-499f-8eff-9754361e0e52}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ImGui\gl3w">
-      <UniqueIdentifier>{2cb2e5f1-4096-4031-8de3-93613b02d294}</UniqueIdentifier>
+    <Filter Include="third-party\ImGuiFileDialog">
+      <UniqueIdentifier>{7c15993d-00c0-4831-b8c8-14a063e75e76}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ImGui\libs\gl3w\GL\gl3w.c">
-      <Filter>ImGui\gl3w</Filter>
+    <ClCompile Include="Main\imgui_builder.cpp">
+      <Filter>main</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\opengl\imgui_impl_glfw.cpp">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClCompile Include="utils\utils.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\opengl\imgui_impl_opengl2.cpp">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClCompile Include="third-party\ImGui\imgui.cpp">
+      <Filter>third-party\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\opengl\imgui_impl_opengl3.cpp">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClCompile Include="third-party\ImGui\imgui_draw.cpp">
+      <Filter>third-party\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="third-party\ImGui\imgui_tables.cpp">
+      <Filter>third-party\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="third-party\ImGui\imgui_widgets.cpp">
+      <Filter>third-party\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_tables.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="third-party\ImGui\gl3w\GL\gl3w.c">
+      <Filter>third-party\ImGui\gl3w</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="third-party\ImGui\opengl\imgui_impl_glfw.cpp">
+      <Filter>third-party\ImGui\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="Main\ImGuiBuilder.cpp">
-      <Filter>Main</Filter>
+    <ClCompile Include="third-party\ImGui\opengl\imgui_impl_opengl2.cpp">
+      <Filter>third-party\ImGui\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="Main\main.cpp">
-      <Filter>Main</Filter>
+    <ClCompile Include="third-party\ImGui\opengl\imgui_impl_opengl3.cpp">
+      <Filter>third-party\ImGui\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="third-party\ImGui\usynergy\uSynergy.c">
+      <Filter>third-party\ImGui\usynergy</Filter>
+    </ClCompile>
+    <ClCompile Include="main\the_window.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main\additional.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="main\build_config.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="third-party\ImGuiFileDialog\ImGuiFileDialog.cpp">
+      <Filter>third-party\ImGuiFileDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ImGui\libs\gl3w\GL\gl3w.h">
-      <Filter>ImGui\gl3w</Filter>
+    <ClInclude Include="Main\imgui_builder.h">
+      <Filter>main</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\libs\gl3w\GL\glcorearb.h">
-      <Filter>ImGui\gl3w</Filter>
+    <ClInclude Include="utils\utils.h">
+      <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\opengl\imgui_impl_glfw.h">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClInclude Include="third-party\ImGui\imconfig.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\opengl\imgui_impl_opengl2.h">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClInclude Include="third-party\ImGui\imgui.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\opengl\imgui_impl_opengl3.h">
-      <Filter>ImGui\ImGuiGL</Filter>
+    <ClInclude Include="third-party\ImGui\imgui_internal.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imconfig.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\imstb_rectpack.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\imstb_textedit.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\imstb_truetype.h">
+      <Filter>third-party\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\gl3w\GL\gl3w.h">
+      <Filter>third-party\ImGui\gl3w</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_textedit.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\gl3w\GL\glcorearb.h">
+      <Filter>third-party\ImGui\gl3w</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_truetype.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="third-party\ImGui\glfw\include\GLFW\glfw3.h">
+      <Filter>third-party\ImGui\glfw</Filter>
     </ClInclude>
-    <ClInclude Include="Main\ImGuiBuilder.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="third-party\ImGui\glfw\include\GLFW\glfw3native.h">
+      <Filter>third-party\ImGui\glfw</Filter>
     </ClInclude>
-    <ClInclude Include="Main\shared.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="third-party\ImGui\opengl\imgui_impl_glfw.h">
+      <Filter>third-party\ImGui\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="third-party\ImGui\opengl\imgui_impl_opengl2.h">
+      <Filter>third-party\ImGui\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="third-party\ImGui\opengl\imgui_impl_opengl3.h">
+      <Filter>third-party\ImGui\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="third-party\ImGui\usynergy\uSynergy.h">
+      <Filter>third-party\ImGui\usynergy</Filter>
+    </ClInclude>
+    <ClInclude Include="main\the_window.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="header.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="main\additional.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="main\build_config.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="main\structs.hpp">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="third-party\ImGuiFileDialog\ImGuiFileDialog.h">
+      <Filter>third-party\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="third-party\ImGuiFileDialog\ImGuiFileDialogConfig.h">
+      <Filter>third-party\ImGuiFileDialog</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
