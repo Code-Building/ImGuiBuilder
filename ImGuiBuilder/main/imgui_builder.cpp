@@ -970,6 +970,7 @@ void imgui_builder::resize_obj( ImVec2& obj_pos, ImVec2& obj_size, bool hover, b
 
 }
 
+
 void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 {
 	// set pos for next obj render
@@ -1002,6 +1003,20 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	auto			normal_select	= ( m_current_item == ( obj.name + ":" + std::to_string( obj.id ) ) );
 
 
+	auto relative_for_resize = []( basic_obj& obj ) -> float
+	{ 
+		auto&		g			= *GImGui;
+		auto*		window		= g.CurrentWindow;
+		const auto&	style		= g.Style;
+		const auto	id			= window->GetID( obj.name.c_str( ) );
+		const auto	label_size	= ImGui::CalcTextSize( obj.name.c_str( ), nullptr, true );
+		const auto	frame_size	= ImGui::CalcItemSize( ImVec2( 0, 0 ), ImGui::CalcItemWidth( ), ( label_size.y ) + style.FramePadding.y * 2.0f );
+		const auto	label_dif	= ( label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f );
+		if ( obj.size_obj.x == 0.f && obj.size_obj.y == 0.f )
+			obj.size_obj = ImVec2( frame_size.x + label_dif, frame_size.y );
+		return obj.size_obj.x - label_dif;
+	};
+
 	// render obj
 	switch ( obj.my_type )
 	{
@@ -1014,17 +1029,26 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 
 		break;
 	case 3:
+	{
+		ImGui::PushItemWidth( relative_for_resize( obj ) );
 		ImGui::InputText( obj.name.c_str( ), const_cast<char*>( buffer.c_str( ) ), 254 );
-
+		ImGui::PopItemWidth( );
 		break;
+	}
 	case 4:
+	{
+		ImGui::PushItemWidth( relative_for_resize( obj ) );
 		ImGui::SliderInt( obj.name.c_str( ), &value_i, 0, 100 );
-
+		ImGui::PopItemWidth( );
 		break;
+	}
 	case 5:
+	{
+		ImGui::PushItemWidth( relative_for_resize( obj ) );
 		ImGui::SliderFloat( obj.name.c_str( ), &value_f, 0, 100 );
-
+		ImGui::PopItemWidth( );
 		break;
+	}
 	case 6:
 		ImGui::Checkbox( obj.name.c_str( ), &true_bool );
 
@@ -1040,9 +1064,11 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	default:
 		break;
 	}
+	obj.size_obj		= ImGui::GetItemRectSize( );
 
-	bool scrollEnableY = ImGui::GetScrollMaxY( ) > 0.f;
-	auto scrollPosY = ImGui::GetScrollY( );
+	bool scrollEnableY	= ImGui::GetScrollMaxY( ) > 0.f;
+
+	auto scrollPosY		= ImGui::GetScrollY( );
 
 	ImVec2 oldPos = obj.pos;
 
@@ -1057,7 +1083,6 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	}
 
 	// get size and hover of object
-	obj.size_obj	= ImGui::GetItemRectSize( );
 	//obj.hover		= ImGui::IsItemHovered( );
 	obj.hover		= my_IsItemHovered( obj.pos, obj.size_obj, 5.f );
 
