@@ -158,13 +158,13 @@ void imgui_builder::draw_dialogs_save_open( )
 				}
 				case 3:
 				{
-					im_config::color::load( file_full_path, m_custom_gui_style );
+					im_config::color::save( file_full_path, m_custom_gui_style );
 					MessageBoxA( nullptr, "Colors saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 4:
 				{
-					im_config::color::save( file_full_path, m_custom_gui_style );
+					im_config::color::load( file_full_path, m_custom_gui_style );
 					MessageBoxA( nullptr, "Colors loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
@@ -521,6 +521,7 @@ void imgui_builder::create_obj( uint16_t type )
 {
 	if ( m_forms.empty( ) )
 		return;
+
 	m_obj_id++;
 	auto name = get_name_type( type );
 
@@ -693,33 +694,47 @@ void imgui_builder::show_form( )
 				break; //not to render the object
 			}
 
+			bool hover = false;
+
 			ImGui::BeginChild( container.name.c_str( ), container.size, container.border );
+
+			bool scrollEnableY = ImGui::GetScrollMaxY( ) > 0.f;
+			auto scrollPosY = ImGui::GetScrollY( );
+
 			for ( auto& obj : m_objs )
 			{
 				if ( obj.form == form.id && obj.child == container.id ) // render obj with child
 				{
-					//Render all obj
 					render_obj( obj, form.id );
+
+					ImVec2 oldPos = obj.pos;
+
+					if ( scrollEnableY )
+					{
+						obj.pos.y -= scrollPosY;
+					}
+					
+					if ( my_IsItemHovered( obj.pos, obj.size, 5.f ) )
+						hover = true;
+
+					obj.pos = oldPos;
 				}
 			}
 			ImGui::EndChild( );
 
 			// check if selected
-			//container.hover = ImGui::IsItemHovered( );
-			container.hover = my_IsItemHovered( container.pos, container.size, 5.f );
-			//if ( container.hover && limit_bordering_control( container.pos, container.size, -15.f ) == resize_opt::off ) //I don't know if you were good with that 
+			// container.hover = ImGui::IsItemHovered( );
+			container.hover = my_IsItemHovered( container.pos, container.size, 5.f ) && !hover;
+			//if ( container.hover && limit_bordering_control( container.pos, container.size, -15.f ) != resize_opt::off ) //I don't know if you were good with that 
 			//	container.hover = false;
-			
-			
+
 			// thats is shame but... work good....
 			if ( container.hover && ImGui::IsMouseClicked( 0, false ) )
 			{
-
 				m_current_item	= container.name + ':' + std::to_string( form.id );
 				m_family		= container.father;
 				m_index			= container.id;
-				m_type			= 10;		
-
+				m_type			= 10;
 			}
 			if ( container.hover )
 				SetCursor( this->cursor.m_arrow_all );
@@ -762,6 +777,7 @@ void imgui_builder::delete_form( int form_id )
 	else
 	{
 		m_objs.clear( );
+		m_obj_id = -1;
 		std::cout << "delete all\n";
 	}
 
@@ -783,9 +799,6 @@ void imgui_builder::delete_form( int form_id )
 	}
 }
 
-
-
-
 void imgui_builder::resize_obj( basic_obj& current_obj, bool selected )
 {
 	resize_obj( current_obj.pos, current_obj.size_obj, current_obj.hover, selected );
@@ -798,9 +811,22 @@ void imgui_builder::resize_obj( ImVec2& obj_pos, ImVec2& obj_size, bool hover, b
 	//printf( "pos { %.f, %.f }, size { %.f, %.f }, hover %d, selected %d\n", obj_pos.x, obj_pos.y, obj_size.x, obj_size.y, hover, selected );
 	auto resze_opt			= resize_opt::off;
 
+	bool scrollEnableY = ImGui::GetScrollMaxY( ) > 0.f;
+	auto scrollPosY = ImGui::GetScrollY( );
+
 	if ( hover && !m_tick_resize )
 	{
+		ImVec2 oldPos = obj_pos;
+
+		if ( scrollEnableY )
+		{
+			obj_pos.y -= scrollPosY;
+		}
+
 		resze_opt = limit_bordering_control( obj_pos, obj_size, 3.f );
+
+		obj_pos = oldPos;
+
 		switch ( resze_opt )
 		{
 		case resize_opt::bottom_right:
@@ -892,7 +918,7 @@ void imgui_builder::resize_obj( ImVec2& obj_pos, ImVec2& obj_size, bool hover, b
 			}
 			case resize_opt::top:
 			{
-				auto end_pos_y	= current_win_pos.y + obj_pos.y;
+				auto end_pos_y	= ( current_win_pos.y + obj_pos.y ) - scrollPosY;
 				auto dif		= normalize_diff( end_pos_y - current_pos.y );
 				obj_pos.y		-= dif;
 				obj_size.y		+= dif;
@@ -975,19 +1001,21 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	static bool		true_bool		= false;
 	auto			normal_select	= ( m_current_item == ( obj.name + ":" + std::to_string( obj.id ) ) );
 
+
 	// render obj
 	switch ( obj.my_type )
 	{
 	case 1:
 		ImGui::Button( obj.name.c_str( ), obj.size );
+
 		break;
 	case 2:
 		ImGui::Text( obj.name.c_str( ) );
+
 		break;
 	case 3:
-		//ImGui::PushItemWidth( obj.size_obj.x );
 		ImGui::InputText( obj.name.c_str( ), const_cast<char*>( buffer.c_str( ) ), 254 );
-		//ImGui::PopItemWidth( );
+
 		break;
 	case 4:
 		ImGui::SliderInt( obj.name.c_str( ), &value_i, 0, 100 );
@@ -995,6 +1023,7 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		break;
 	case 5:
 		ImGui::SliderFloat( obj.name.c_str( ), &value_f, 0, 100 );
+
 		break;
 	case 6:
 		ImGui::Checkbox( obj.name.c_str( ), &true_bool );
@@ -1002,21 +1031,30 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		break;
 	case 7:
 		ImGui::RadioButton( obj.name.c_str( ), true_bool );
+
 		break;
 	case 8:
 		ImGui::ToggleButton( obj.name.c_str( ), &true_bool );
+
 		break;
 	default:
 		break;
 	}
+
+	bool scrollEnableY = ImGui::GetScrollMaxY( ) > 0.f;
+	auto scrollPosY = ImGui::GetScrollY( );
+
+	ImVec2 oldPos = obj.pos;
+
+	if ( scrollEnableY )
+	{
+		obj.pos.y -= scrollPosY;
+	}
+
 	if ( ( obj.selected || normal_select ) && current_form_id == m_active_window_id )
 	{
 		ImGui::DrawObjBorder( obj );
 	}
-
-
-
-
 
 	// get size and hover of object
 	obj.size_obj	= ImGui::GetItemRectSize( );
@@ -1027,7 +1065,7 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	auto left_clicked	= ImGui::IsMouseClicked( 0, false );
 	auto right_clicked	= ImGui::IsMouseClicked( 1, false );
 	auto show_context	= normal_select;
-	if ( obj.hover && (left_clicked || right_clicked) )
+	if ( obj.hover && (left_clicked || right_clicked) && show_context == false )
 	{
 		show_context = !left_clicked;
 		if ( GetKeyState( VK_CONTROL ) & 0x8000 )
@@ -1070,12 +1108,11 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	}
 	if ( obj.hover )
 		SetCursor( this->cursor.m_arrow_all );
+
+	obj.pos = oldPos;
+
 	resize_obj( obj, normal_select  );
-
 }
-
-
-
 
 
 void imgui_builder::object_property( )

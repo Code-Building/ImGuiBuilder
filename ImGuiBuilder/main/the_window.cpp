@@ -13,7 +13,6 @@ void glfw_error_callback( int error, const char* description )
 
 window* c_window = nullptr;
 
-
 /// <summary>
 /// creation builder window
 /// </summary>
@@ -21,14 +20,15 @@ window::window( void* func_draw ) : m_func_draw( func_draw )
 {
 	c_window = this;
 
+//#ifndef _DEBUG
+//	ShowWindow( GetConsoleWindow( ), 0 );
+//#endif // !_DEBUG
+
 	glfwSetErrorCallback( glfw_error_callback );
 	if ( !glfwInit( ) )
 		return;
 
 	const char* glsl_version = "#version 130";
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
 
 	m_glfwindow = glfwCreateWindow( 1280, 720, "ImGuiBuilder!", nullptr, nullptr );
 
@@ -43,11 +43,11 @@ window::window( void* func_draw ) : m_func_draw( func_draw )
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
 	bool err = glewInit( ) != GLEW_OK;
 #endif
-	if ( err )
-	{
-		fprintf( stderr, "Failed to initialize OpenGL loader!\n" );
-		return;
-	}
+	//if ( err )
+	//{
+	//	fprintf( stderr, "Failed to initialize OpenGL loader!\n" );
+	//	return;
+	//}
 
 	IMGUI_CHECKVERSION( );
 
@@ -61,7 +61,11 @@ window::window( void* func_draw ) : m_func_draw( func_draw )
 
 	ImGui_ImplGlfw_InitForOpenGL( m_glfwindow, true );
 
+#ifdef _OPENGL2
+	ImGui_ImplOpenGL2_Init( );
+#else
 	ImGui_ImplOpenGL3_Init( glsl_version );
+#endif
 
 	auto clear_color = ImVec4( 0.30f, 0.30f, 0.30f, 1.00f );
 
@@ -75,7 +79,7 @@ window::window( void* func_draw ) : m_func_draw( func_draw )
 /// <returns></returns>
 bool window::pressed_key( int key )
 {
-	return ( GetFocus( ) == m_window ) && ( GetAsyncKeyState( key ) & 1 );
+	return ( GetFocus( ) == m_window ) && ( GetAsyncKeyState( key ) & 0x8000 );
 }
 
 /// <summary>
@@ -127,7 +131,11 @@ void window::routine( )
 	{
 		glfwPollEvents( );
 
+#ifdef _OPENGL2
+		ImGui_ImplOpenGL2_NewFrame( );
+#else
 		ImGui_ImplOpenGL3_NewFrame( );
+#endif
 
 		ImGui_ImplGlfw_NewFrame( );
 
@@ -147,8 +155,13 @@ void window::routine( )
 
 		glClear( GL_COLOR_BUFFER_BIT );
 
+#ifdef _OPENGL2
+		ImGui_ImplOpenGL2_RenderDrawData( ImGui::GetDrawData( ) );
+#else
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData( ) );
+#endif
 
+		// glfwMakeContextCurrent( m_glfwindow );
 		glfwSwapBuffers( m_glfwindow );
 	}
 }
@@ -168,7 +181,11 @@ HWND window::get_win32_window( )
 /// </summary>
 window::~window( )
 {
+#ifdef _OPENGL2
+	ImGui_ImplOpenGL2_Shutdown( );
+#else
 	ImGui_ImplOpenGL3_Shutdown( );
+#endif
 
 	ImGui_ImplGlfw_Shutdown( );
 
