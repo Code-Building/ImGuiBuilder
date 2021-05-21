@@ -21,3 +21,4 @@
 *.iobj
 *.ipdb
 *.txt
+bin/
