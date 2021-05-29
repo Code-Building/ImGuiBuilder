@@ -31,13 +31,16 @@ struct basic_obj
 	int			child		= -1;
 	std::string name		= "obj";
 	int32_t		my_type		= 0;
+
 	ImVec2		size		= { };
 	ImVec2		pos			= { 10, 10 };
 	ImVec2		size_obj	= { };
+
 	bool		change_pos	= false;
 	bool		hover		= false;
 	bool		delete_me	= false;
 	bool		selected	= false;
+	bool		locked		= false;
 };
 
 struct child
@@ -53,6 +56,8 @@ struct child
 	bool		change_pos	= false;
 	bool		hover		= false;
 	bool		delete_me	= false;
+	bool		selected	= false;
+	bool		locked		= false;
 	//std::vector<simple_obj> obj_render_me; // is very unstable that
 };
 

@@ -791,6 +791,8 @@ namespace IGFD
 		std::string GetCurrentFilter();								// will return selected filter
 		UserDatas GetUserDatas();									// will return user datas send with Open Dialog/Modal
 		
+		void SetPath( const std::string& vPath );					// set the path of the dialog, will launch the directory scan for populate the file listview
+
 		// extentions displaying
 		void SetExtentionInfos(										// SetExtention datas for have custom display of particular file type
 			const std::string& vFilter,								// extention filter to tune
@@ -843,7 +845,6 @@ namespace IGFD
 		void SelectFileName(const FileInfoStruct& vInfos);																	// select filename
 		void RemoveFileNameInSelection(const std::string& vFileName);														// selection : remove a file name
 		void AddFileNameInSelection(const std::string& vFileName, bool vSetLastSelectionFileName);							// selection : add a file name
-		void SetPath(const std::string& vPath);																				// set the path of the dialog, will launch the directory scan for populate the file listview
 		void CompleteFileInfos(FileInfoStruct *vFileInfoStruct);															// set time and date infos of a file (detail view mode)
 		void SortFields(SortingFieldEnum vSortingField = SortingFieldEnum::FIELD_NONE, 	bool vCanChangeOrder = false);		// will sort a column
 		void ScanDir(const std::string& vPath);																				// scan the directory for retrieve the file list

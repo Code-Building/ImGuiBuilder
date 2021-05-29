@@ -10,6 +10,7 @@ private:
 	int						m_obj_id			= -1;
 	bool					m_color_menu		= false; 
 	bool					m_style_menu		= false;
+	bool					m_font_menu			= false;
 	std::vector<form>		m_forms				= { };
 	std::vector<basic_obj>	m_objs				= { };
 	ImGuiStyle				m_dark_style		= { };
@@ -51,6 +52,8 @@ private:
 	void form_window_flag( );
 
 	void form_color_editor( );
+
+	void form_font_editor( );
 
 	void draw( );
 

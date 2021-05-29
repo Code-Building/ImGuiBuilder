@@ -24,7 +24,6 @@ struct move_obj
 	ImVec2 pos{ };
 };
 
-
 std::string get_name_type( const int type )
 {
 	switch ( type )
@@ -91,7 +90,6 @@ bool my_IsItemHovered(ImVec2 obj_pos, ImVec2 obj_size, float distance )
 void move_item( ImVec2& obj_pos, bool& continue_edt );
 void move_items( std::vector<move_obj>& mto, bool& continue_edt );
 
-
 imgui_builder::imgui_builder( )
 {
 	
@@ -110,7 +108,6 @@ imgui_builder::imgui_builder( )
 	m_objs.clear( );
 }
 
-
 /// <summary>
 /// here will show the dialogs for saving or uploading files 
 /// </summary>
@@ -127,6 +124,29 @@ void imgui_builder::draw_dialogs_save_open( )
 		"SaveFlagsDlgKey",
 		"OpenFlagsDlgKey"
 	};
+
+	auto DeleteKey = [ & ] ( const std::string& keyname ) -> void {
+		HKEY hKey;
+		RegOpenKeyExA( HKEY_CURRENT_USER, NULL, 0, KEY_SET_VALUE, &hKey );
+
+		RegDeleteKeyExA( hKey, keyname.c_str( ), KEY_WOW64_64KEY, NULL );
+
+		RegCloseKey( hKey );
+	};
+
+	auto SetValue = [ & ] ( const std::string& keyname, const std::string& value ) -> void {
+		DeleteKey( keyname );
+
+		HKEY hKey;
+		RegOpenKeyExA( HKEY_CURRENT_USER, NULL, 0, KEY_SET_VALUE, &hKey );
+
+		auto status = RegSetValueExA( hKey, keyname.c_str( ), NULL, REG_SZ, (LPBYTE)value.c_str( ), value.size( ) + 1 );
+
+		printf_s( "RegSetValueEx: %d\n", status );
+
+		RegCloseKey( hKey );
+	};
+
 	auto i = 0;
 	for ( auto key : dialogs_keys )
 	{
@@ -134,63 +154,80 @@ void imgui_builder::draw_dialogs_save_open( )
 		{
 			if ( ImGuiFileDialog::Instance( )->IsOk( ) )
 			{
-				std::string file_full_path = ImGuiFileDialog::Instance( )->GetFilePathName( );
+				std::string file_full_path	= ImGuiFileDialog::Instance( )->GetFilePathName( );
+				std::string full_path		= ImGuiFileDialog::Instance( )->GetCurrentPath( );
+
+				SetValue( "ImGuiBuilderPath", full_path );
+
 				switch ( i )
 				{
 				case 0:
 				{
-					im_config::controls::save( file_full_path, m_forms, m_objs );
-					MessageBoxA( nullptr, "Project saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::controls::save( file_full_path, m_forms, m_objs ) )
+						MessageBoxA( nullptr, "Project saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 1:
 				{
 					m_forms.clear( );
 					m_objs.clear( );
-					im_config::controls::load( file_full_path, m_forms, m_objs, &m_id );
+					if ( im_config::controls::load( file_full_path, m_forms, m_objs, &m_id ) )
+						MessageBoxA( nullptr, "Project loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 2:
 				{
-					im_config::controls::create_code( file_full_path, m_forms, m_objs );
-					MessageBoxA( nullptr, "Code been generated!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::controls::create_code( file_full_path, m_forms, m_objs ) )
+						MessageBoxA( nullptr, "Code been generated!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 3:
 				{
-					im_config::color::save( file_full_path, m_custom_gui_style );
-					MessageBoxA( nullptr, "Colors saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::color::save( file_full_path, m_custom_gui_style ) )
+						MessageBoxA( nullptr, "Colors saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 4:
 				{
-					im_config::color::load( file_full_path, m_custom_gui_style );
-					MessageBoxA( nullptr, "Colors loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::color::load( file_full_path, m_custom_gui_style ) )
+						MessageBoxA( nullptr, "Colors loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 5:
 				{
-					im_config::window_flags::save( file_full_path, m_custom_gui_style );
-					MessageBoxA( nullptr, "Flags saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::window_flags::save( file_full_path, m_custom_gui_style ) )
+						MessageBoxA( nullptr, "Flags saved!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				case 6:
 				{
-					im_config::window_flags::load( file_full_path, m_custom_gui_style );
-					MessageBoxA( nullptr, "Flags loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
+					if ( im_config::window_flags::load( file_full_path, m_custom_gui_style ) )
+						MessageBoxA( nullptr, "Flags loaded!", "ImGui Builder", MB_OK | MB_ICONINFORMATION );
 					break;
 				}
 				default:
 					break;
 				}
-
 			}
 
 			ImGuiFileDialog::Instance( )->Close( );
 		}
 		++i;
 	}
+}
 
+auto RegeditGetPath ( const std::string& keyname ) -> std::string {
+	HKEY hKey;
+	RegOpenKeyExA( HKEY_CURRENT_USER, NULL, 0, KEY_SET_VALUE, &hKey );
+
+	char buffer[ MAX_PATH ];
+	DWORD dwBufferSize = sizeof( buffer );
+
+	auto status = RegQueryValueExA( hKey, keyname.c_str( ), NULL, NULL, (LPBYTE)buffer, &dwBufferSize );
+
+	RegCloseKey( hKey );
+
+	return std::string( buffer );
 }
 
 /// <summary>
@@ -209,13 +246,13 @@ void imgui_builder::form_window_flag( )
 
 	if ( ImGui::Button( "Load" ) )
 	{
-		ImGuiFileDialog::Instance( )->OpenDialog( "OpenFlagsDlgKey", "Open File", ".flags", ".style_flags" );
+		ImGuiFileDialog::Instance( )->OpenDialog( "OpenFlagsDlgKey", "Open File", ".flags", RegeditGetPath( "ImGuiBuilderPath" ), "style_flags" );
 	}
 
 	ImGui::SameLine( );
 	if ( ImGui::Button( "Save" ) )
 	{
-		ImGuiFileDialog::Instance( )->OpenDialog( "SaveFlagsDlgKey", "Save File", ".flags", ".style_flags" );
+		ImGuiFileDialog::Instance( )->OpenDialog( "SaveFlagsDlgKey", "Save File", ".flags", RegeditGetPath( "ImGuiBuilderPath" ), "style_flags" );
 	}
 
 	ImGui::Text( "First" );
@@ -298,13 +335,13 @@ void imgui_builder::form_color_editor( )
 
 	if ( ImGui::Button( "Load" ) )
 	{
-		ImGuiFileDialog::Instance( )->OpenDialog( "OpenColorsDlgKey", "Open File", ".colors", ".style_colors" );
+		ImGuiFileDialog::Instance( )->OpenDialog( "OpenColorsDlgKey", "Open File", ".colors", RegeditGetPath( "ImGuiBuilderPath" ), "style_colors" );
 	}
 
 	ImGui::SameLine( );
 	if ( ImGui::Button( "Save" ) )
 	{
-		ImGuiFileDialog::Instance( )->OpenDialog( "SaveColorsDlgKey", "Save File", ".colors", ".style_colors" );
+		ImGuiFileDialog::Instance( )->OpenDialog( "SaveColorsDlgKey", "Save File", ".colors", RegeditGetPath( "ImGuiBuilderPath" ), "style_colors" );
 	}
 	
 
@@ -358,6 +395,23 @@ void imgui_builder::form_color_editor( )
 }
 
 /// <summary>
+/// this function is for displaying the project's font editing window. 
+/// </summary>
+void imgui_builder::form_font_editor( )
+{
+	ImGui::Begin( "Font Editor", &m_font_menu );
+
+	if ( ImGui::Button( "Import font from file" ) )
+	{
+
+	}
+
+	ImGui::Text( std::string( "Current font: " + std::string( "123" ) ).c_str( ) );
+
+	ImGui::End( );
+}
+
+/// <summary>
 /// will draw everything ... 
 /// </summary>
 void imgui_builder::draw( )
@@ -378,6 +432,9 @@ void imgui_builder::draw( )
 	if ( m_style_menu )
 		form_window_flag( );
 
+	if ( m_font_menu )
+		form_font_editor( );
+
 	paste_obj( );
 
 	ImGui::SetNextWindowSize( { static_cast<float>( width - 16 ), 100 } );
@@ -391,19 +448,17 @@ void imgui_builder::draw( )
 		{
 			if ( ImGui::MenuItem( "Save" ) )
 			{
-				ImGuiFileDialog::Instance( )->OpenDialog( "SaveProjectFileDlgKey", "Save File", ".builder", ".project" );
+				ImGuiFileDialog::Instance( )->OpenDialog( "SaveProjectFileDlgKey", "Save File", ".builder", RegeditGetPath( "ImGuiBuilderPath" ), "project" );
 			}
-
 
 			if ( ImGui::MenuItem( "Open" ) )
 			{
-				ImGuiFileDialog::Instance( )->OpenDialog( "OpenProjectFileDlgKey", "Open File", ".builder", ".project" );
+				ImGuiFileDialog::Instance( )->OpenDialog( "OpenProjectFileDlgKey", "Open File", ".builder", RegeditGetPath( "ImGuiBuilderPath" ), "project" );
 			}
 
 			if ( ImGui::MenuItem( "Generate Code" ) )
 			{
-				ImGuiFileDialog::Instance( )->OpenDialog( "GenCodeProjectFileDlgKey", "Open File", ".cpp,.h,.hpp", ".imgui_builder" );
-
+				ImGuiFileDialog::Instance( )->OpenDialog( "GenCodeProjectFileDlgKey", "Open File", ".cpp,.h,.hpp", RegeditGetPath( "ImGuiBuilderPath" ), "imgui_builder" );
 			}
 
 			ImGui::EndMenu( );
@@ -411,14 +466,13 @@ void imgui_builder::draw( )
 		if ( ImGui::BeginMenu( "Editor" ) )
 		{
 			if ( ImGui::MenuItem( "Color" ) )
-			{
 				m_color_menu = !m_color_menu;
-			}
 
 			if ( ImGui::MenuItem( "Style" ) )
-			{
 				m_style_menu = !m_style_menu;
-			}
+
+			if ( ImGui::MenuItem( "Font" ) )
+				m_font_menu = !m_font_menu;
 
 			ImGui::EndMenu( );
 		}
@@ -527,7 +581,14 @@ void imgui_builder::create_obj( uint16_t type )
 
 	name += std::to_string( m_obj_id );
 
-	const basic_obj new_obj = { m_obj_id, m_active_window_id, -1, name, type, { }, { 30, 30 } };
+	auto child_id = [ & ] ( ) -> int {
+		for ( auto& chl : m_forms[ m_active_window_id ].child )
+			if ( chl.selected )
+				return chl.id;
+		return -1;
+	};
+
+	const basic_obj new_obj = { m_obj_id, m_active_window_id, child_id(), name, type, { }, { 30, 30 } };
 	//form_[id_].obj_render_me.push_back(new_obj);
 	m_objs.push_back( new_obj );
 }
@@ -586,7 +647,6 @@ void imgui_builder::paste_obj( ) //NOT NEED  OVERLOAD FOR THAT!
 		}
 	}
 }
-
 
 void imgui_builder::copy_obj( const int type, const int child, const ImVec2 size, const ImVec2 pos, const bool border, bool selected, bool pass_key_check )
 {
@@ -679,7 +739,16 @@ void imgui_builder::show_form( )
 			// if signal of delete object
 			if ( container.delete_me )
 			{
-				// delete obj
+				// delete objs
+				for ( auto& obj : m_objs )
+				{
+					if ( obj.child == container.id )
+					{
+						obj.child = -1;
+						// obj.delete_me = true;
+					}
+				}
+				// delete child
 				form.child.erase( form.child.begin( ) + container.id );
 				m_child_id = form.child.size( ) - 1;
 				// if obj not is last
@@ -695,6 +764,8 @@ void imgui_builder::show_form( )
 			}
 
 			bool hover = false;
+
+			auto normal_select = ( m_current_item == ( container.name + ":" + std::to_string( container.id ) ) );
 
 			ImGui::BeginChild( container.name.c_str( ), container.size, container.border );
 
@@ -728,23 +799,66 @@ void imgui_builder::show_form( )
 			//if ( container.hover && limit_bordering_control( container.pos, container.size, -15.f ) != resize_opt::off ) //I don't know if you were good with that 
 			//	container.hover = false;
 
+			auto left_clicked = ImGui::IsMouseClicked( 0, false );
+			auto right_clicked = ImGui::IsMouseClicked( 1, false );
+			auto show_context = normal_select;
+
 			// thats is shame but... work good....
-			if ( container.hover && ImGui::IsMouseClicked( 0, false ) )
+			if ( container.hover && ( left_clicked || right_clicked ) && show_context == false )
 			{
-				m_current_item	= container.name + ':' + std::to_string( form.id );
-				m_family		= container.father;
-				m_index			= container.id;
-				m_type			= 10;
+				show_context = !left_clicked;
+				if ( GetKeyState( VK_CONTROL ) & 0x8000 )
+					container.selected = !container.selected;
+				else
+				{
+					for ( auto& o_obj : m_objs )
+						o_obj.selected = false;
+				}
+				// container.selected	= true;
+				m_current_item		= container.name + ':' + std::to_string( form.id );
+				m_family			= container.father;
+				m_index				= container.id;
+				m_type				= 10;
 			}
 			if ( container.hover )
 				SetCursor( this->cursor.m_arrow_all );
 
-			auto normal_select = ( m_current_item == ( container.name + ":" + std::to_string( form.id ) ) );
-			if ( normal_select && form.id == m_active_window_id )
+			container.selected = ( m_current_item == ( container.name + ":" + std::to_string( form.id ) ) );
+			if ( container.selected && form.id == m_active_window_id )
 			{
 				ImGui::DrawObjBorder( container.pos, container.size );
 			}
-			resize_obj( container.pos, container.size, container.hover, normal_select ); //faio famia
+			if ( !container.locked )
+				resize_obj( container.pos, container.size, container.hover, container.selected );
+
+			ImGui::PushAllColorsDark( m_dark_style );
+
+			if ( show_context && ImGui::BeginPopupContextItem( "##obj_context" ) )
+			{
+				//style.ButtonTextAlign
+				auto& g = *GImGui;
+				auto backup1_y = g.Style.ButtonTextAlign.y;
+				auto backup2_y = g.Style.FramePadding.y;
+				g.Style.FramePadding.y = -1.3f;
+				g.Style.ButtonTextAlign.y = 0.f;
+				ImVec2 btn_size = { 60.f, 12.f };
+				if ( ImGui::Button( "delete", btn_size ) )
+				{
+					container.delete_me = true;
+					m_current_item = "";
+					m_type = -1;
+				}
+				//if ( ImGui::Button( "copy", btn_size ) )
+				//{
+				//	copy_obj( container.my_type, obj.child, obj.size, obj.pos, false, false, true );
+				//}
+				ImGui::Checkbox( "lock", &container.locked );
+				g.Style.ButtonTextAlign.y = backup1_y;
+				g.Style.FramePadding.y = backup2_y;
+				ImGui::EndPopup( );
+			}
+
+			ImGui::PopAllColorsCustom( );
 		}
 		ImGui::End( );
 	}
@@ -801,6 +915,7 @@ void imgui_builder::delete_form( int form_id )
 
 void imgui_builder::resize_obj( basic_obj& current_obj, bool selected )
 {
+	if ( current_obj.locked ) return;
 	resize_obj( current_obj.pos, current_obj.size_obj, current_obj.hover, selected );
 	current_obj.size = current_obj.size_obj;
 }
@@ -970,7 +1085,6 @@ void imgui_builder::resize_obj( ImVec2& obj_pos, ImVec2& obj_size, bool hover, b
 
 }
 
-
 void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 {
 	// set pos for next obj render
@@ -983,6 +1097,7 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		m_objs.erase( m_objs.begin( ) + obj.id );
 		// reform id objs
 		m_obj_id = m_objs.size( ) - 1;
+
 		// previous object, before rendering the others
 		for ( auto new_id = obj.id - 1; new_id < m_objs.size( ); ++new_id )
 		{
@@ -1022,11 +1137,9 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	{
 	case 1:
 		ImGui::Button( obj.name.c_str( ), obj.size );
-
 		break;
 	case 2:
 		ImGui::Text( obj.name.c_str( ) );
-
 		break;
 	case 3:
 	{
@@ -1108,6 +1221,8 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		m_type			= obj.my_type;
 	}
 
+	ImGui::PushAllColorsDark(m_dark_style);
+
 	if ( show_context && ImGui::BeginPopupContextItem( "##obj_context" ) )
 	{
 		//style.ButtonTextAlign
@@ -1127,10 +1242,14 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		{
 			copy_obj( obj.my_type, obj.child, obj.size, obj.pos, false, false, true );
 		}
+		ImGui::Checkbox( "lock", &obj.locked );
 		g.Style.ButtonTextAlign.y	= backup1_y;
 		g.Style.FramePadding.y		= backup2_y;
 		ImGui::EndPopup( );
 	}
+
+	ImGui::PopAllColorsCustom( );
+
 	if ( obj.hover )
 		SetCursor( this->cursor.m_arrow_all );
 
@@ -1138,7 +1257,6 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 
 	resize_obj( obj, normal_select  );
 }
-
 
 void imgui_builder::object_property( )
 {
@@ -1269,8 +1387,10 @@ void imgui_builder::object_property( )
 		ImGui::InputFloat( "PosX", &chl.pos.x, 1 );
 		ImGui::InputFloat( "PosY", &chl.pos.y, 1 );
 		ImGui::Checkbox( "Border", &chl.border );
+		ImGui::SameLine( );
+		ImGui::Checkbox( "Lock", &chl.locked );
 		m_item_size = chl.size;
-		if ( chl.hover )
+		if ( chl.hover && !chl.locked )
 			chl.change_pos = true;
 
 		if ( !m_no_move )
@@ -1315,6 +1435,7 @@ void imgui_builder::object_property( )
 		ImGui::InputFloat( "PosY", &obj.pos.y, 1, 1 );
 		ImGui::InputFloat( "SizeX", &obj.size.x, 1, 1 );
 		ImGui::InputFloat( "SizeY", &obj.size.y, 1, 1 );
+		ImGui::Checkbox( "Lock", &obj.locked );
 
 		//obj.name = name;
 		// check if hover because need for change position
@@ -1326,7 +1447,7 @@ void imgui_builder::object_property( )
 			mto.clear( );
 			for ( auto& r_obj : m_objs )
 			{
-				if ( r_obj.selected == true )
+				if ( r_obj.selected == true && !r_obj.locked )
 				{
 					mto.push_back( { r_obj.id, r_obj.pos } );
 				}
@@ -1343,7 +1464,8 @@ void imgui_builder::object_property( )
 			}
 		}
 		else if ( !m_no_move )
-			move_item( obj.pos, obj.change_pos );
+			if (!obj.locked )
+				move_item( obj.pos, obj.change_pos );
 
 		copy_obj( obj.my_type, obj.child, obj.size, obj.pos, false, obj.selected );
 
@@ -1370,7 +1492,6 @@ void imgui_builder::routine_draw( )
 		instance = new imgui_builder( );
 	instance->draw( );
 }
-
 
 void move_items( std::vector<move_obj>& mto, bool& continue_edt )
 {

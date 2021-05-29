@@ -21,3 +21,5 @@
 *.iobj
 *.ipdb
 *.txt
+*.lib
+*.exp

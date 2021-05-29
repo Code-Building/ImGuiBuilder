@@ -1,10 +1,16 @@
 #include "../header.h"
 #include "build_config.h"
 #include "../utils/utils.h"
-
+#include <sys/stat.h>
 
 ImGuiStyle	g_ref_saved_style		= { };
 auto		g_output_only_modified	= false;
+
+bool CheckFileExists( std::string path )
+{
+	struct stat buffer;
+	return ( stat( path.c_str( ), &buffer ) == 0 );
+}
 
 void im_config::window_flags::to_clipboard( ImGuiStyle& custom_gui_style )
 {
@@ -14,49 +20,49 @@ void im_config::window_flags::to_clipboard( ImGuiStyle& custom_gui_style )
 	ImGui::LogText( "ImGuiStyle& style = ImGui::GetStyle();\n" );
 
 	// Padding
-	ImGui::LogText( "style.WindowPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.WindowPadding.x,
+	ImGui::LogText( "style.WindowPadding = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.WindowPadding.x,
 		custom_gui_style.WindowPadding.y );
-	ImGui::LogText( "style.FramePadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.FramePadding.x,
+	ImGui::LogText( "style.FramePadding = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.FramePadding.x,
 		custom_gui_style.FramePadding.y );
-	ImGui::LogText( "style.CellPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.CellPadding.x,
+	ImGui::LogText( "style.CellPadding = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.CellPadding.x,
 		custom_gui_style.CellPadding.y );
-	ImGui::LogText( "style.ItemSpacing = ImVec2(%.0f, %.0f);\n", custom_gui_style.ItemSpacing.x,
+	ImGui::LogText( "style.ItemSpacing = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.ItemSpacing.x,
 		custom_gui_style.ItemSpacing.y );
-	ImGui::LogText( "style.ItemInnerSpacing = ImVec2(%.0f, %.0f);\n", custom_gui_style.ItemInnerSpacing.x,
+	ImGui::LogText( "style.ItemInnerSpacing = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.ItemInnerSpacing.x,
 		custom_gui_style.ItemInnerSpacing.y );
-	ImGui::LogText( "style.TouchExtraPadding = ImVec2(%.0f, %.0f);\n", custom_gui_style.TouchExtraPadding.x,
+	ImGui::LogText( "style.TouchExtraPadding = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.TouchExtraPadding.x,
 		custom_gui_style.TouchExtraPadding.y );
-	ImGui::LogText( "style.IndentSpacing = %.0f\n", custom_gui_style.IndentSpacing );
-	ImGui::LogText( "style.ScrollbarSize = %.0f\n", custom_gui_style.ScrollbarSize );
-	ImGui::LogText( "style.GrabMinSize = %.0f\n", custom_gui_style.GrabMinSize );
-	ImGui::LogText( "style.WindowBorderSize = %.0f\n", custom_gui_style.WindowBorderSize );
-	ImGui::LogText( "style.ChildBorderSize = %.0f\n", custom_gui_style.ChildBorderSize );
-	ImGui::LogText( "style.PopupBorderSize = %.0f\n", custom_gui_style.PopupBorderSize );
-	ImGui::LogText( "style.FrameBorderSize = %.0f\n", custom_gui_style.FrameBorderSize );
-	ImGui::LogText( "style.TabBorderSize = %.0f\n", custom_gui_style.TabBorderSize );
+	ImGui::LogText( "style.IndentSpacing = %.2ff;\n", custom_gui_style.IndentSpacing );
+	ImGui::LogText( "style.ScrollbarSize = %.2ff;\n", custom_gui_style.ScrollbarSize );
+	ImGui::LogText( "style.GrabMinSize = %.2ff;\n", custom_gui_style.GrabMinSize );
+	ImGui::LogText( "style.WindowBorderSize = %.2ff;\n", custom_gui_style.WindowBorderSize );
+	ImGui::LogText( "style.ChildBorderSize = %.2ff;\n", custom_gui_style.ChildBorderSize );
+	ImGui::LogText( "style.PopupBorderSize = %.2ff;\n", custom_gui_style.PopupBorderSize );
+	ImGui::LogText( "style.FrameBorderSize = %.2ff;\n", custom_gui_style.FrameBorderSize );
+	ImGui::LogText( "style.TabBorderSize = %.2ff;\n", custom_gui_style.TabBorderSize );
 
 	// Rounding
-	ImGui::LogText( "style.WindowRounding = %.0f\n", custom_gui_style.WindowRounding );
-	ImGui::LogText( "style.ChildRounding = %.0f\n", custom_gui_style.ChildRounding );
-	ImGui::LogText( "style.FrameRounding = %.0f\n", custom_gui_style.FrameRounding );
-	ImGui::LogText( "style.PopupRounding = %.0f\n", custom_gui_style.PopupRounding );
-	ImGui::LogText( "style.ScrollbarRounding = %.0f\n", custom_gui_style.ScrollbarRounding );
-	ImGui::LogText( "style.GrabRounding = %.0f\n", custom_gui_style.GrabRounding );
-	ImGui::LogText( "style.LogSliderDeadzone = %.0f\n", custom_gui_style.LogSliderDeadzone );
-	ImGui::LogText( "style.TabRounding = %.0f\n", custom_gui_style.TabRounding );
+	ImGui::LogText( "style.WindowRounding = %.2ff;\n", custom_gui_style.WindowRounding );
+	ImGui::LogText( "style.ChildRounding = %.2ff;\n", custom_gui_style.ChildRounding );
+	ImGui::LogText( "style.FrameRounding = %.2ff;\n", custom_gui_style.FrameRounding );
+	ImGui::LogText( "style.PopupRounding = %.2ff;\n", custom_gui_style.PopupRounding );
+	ImGui::LogText( "style.ScrollbarRounding = %.2ff;\n", custom_gui_style.ScrollbarRounding );
+	ImGui::LogText( "style.GrabRounding = %.2ff;\n", custom_gui_style.GrabRounding );
+	ImGui::LogText( "style.LogSliderDeadzone = %.2ff;\n", custom_gui_style.LogSliderDeadzone );
+	ImGui::LogText( "style.TabRounding = %.2ff;\n", custom_gui_style.TabRounding );
 
 	// Position
-	ImGui::LogText( "style.WindowTitleAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.WindowTitleAlign.x,
+	ImGui::LogText( "style.WindowTitleAlign = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.WindowTitleAlign.x,
 		custom_gui_style.WindowTitleAlign.y );
-	ImGui::LogText( "style.WindowMenuButtonPosition = %d\n", custom_gui_style.WindowMenuButtonPosition );
-	ImGui::LogText( "style.ColorButtonPosition = %d\n", custom_gui_style.ColorButtonPosition );
-	ImGui::LogText( "style.ButtonTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.ButtonTextAlign.x,
+	ImGui::LogText( "style.WindowMenuButtonPosition = %d;\n", custom_gui_style.WindowMenuButtonPosition );
+	ImGui::LogText( "style.ColorButtonPosition = %d;\n", custom_gui_style.ColorButtonPosition );
+	ImGui::LogText( "style.ButtonTextAlign = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.ButtonTextAlign.x,
 		custom_gui_style.ButtonTextAlign.y );
-	ImGui::LogText( "style.SelectableTextAlign = ImVec2(%.0f, %.0f);\n", custom_gui_style.SelectableTextAlign.x,
+	ImGui::LogText( "style.SelectableTextAlign = ImVec2(%.2ff, %.2ff);\n", custom_gui_style.SelectableTextAlign.x,
 		custom_gui_style.SelectableTextAlign.y );
 
 	// Nani??
-	ImGui::LogText( "style.DisplaySafeAreaPadding = ImVec2(%.0f, %.0f);\n",
+	ImGui::LogText( "style.DisplaySafeAreaPadding = ImVec2(%.2ff, %.2ff);\n",
 		custom_gui_style.DisplaySafeAreaPadding.x, custom_gui_style.DisplaySafeAreaPadding.y );
 
 	ImGui::LogText( "}\n}\n" );
@@ -64,7 +70,7 @@ void im_config::window_flags::to_clipboard( ImGuiStyle& custom_gui_style )
 	ImGui::LogFinish( );
 }
 
-void im_config::window_flags::save( std::string style, ImGuiStyle custom_gui_style )
+bool im_config::window_flags::save( std::string style, ImGuiStyle custom_gui_style )
 {
 	std::ofstream f_save;
 	f_save.open( style );
@@ -108,9 +114,10 @@ void im_config::window_flags::save( std::string style, ImGuiStyle custom_gui_sty
 
 		f_save.close( );
 	}
+	return CheckFileExists( style );
 }
 
-void im_config::window_flags::load( std::string style, ImGuiStyle& custom_gui_style )
+bool im_config::window_flags::load( std::string style, ImGuiStyle& custom_gui_style )
 {
 	std::ifstream r_file( style );
 	std::string line;
@@ -233,7 +240,9 @@ void im_config::window_flags::load( std::string style, ImGuiStyle& custom_gui_st
 			fileindex++;
 		}
 		r_file.close( );
+		return true;
 	}
+	return false;
 }
 
 ImVec4* im_config::color::saved_colors( )
@@ -258,7 +267,7 @@ void im_config::color::to_clipboard( ImGuiStyle custom_gui_style )
 	ImGui::LogFinish( );
 }
 
-void im_config::color::save( std::string style, ImGuiStyle custom_gui_style )
+bool im_config::color::save( std::string style, ImGuiStyle custom_gui_style )
 {
 	remove( style.c_str( ) );
 
@@ -268,9 +277,11 @@ void im_config::color::save( std::string style, ImGuiStyle custom_gui_style )
 		filewrite << col.x << "," << col.y << "," << col.z << "," << col.w << std::endl;
 
 	filewrite.close( );
+
+	return CheckFileExists( style );
 }
 
-void im_config::color::load( std::string style, ImGuiStyle& custom_gui_style )
+bool im_config::color::load( std::string style, ImGuiStyle& custom_gui_style )
 {
 
 	std::ifstream file_import( style );
@@ -290,11 +301,13 @@ void im_config::color::load( std::string style, ImGuiStyle& custom_gui_style )
 		}
 
 		file_import.close( );
+
+		return true;
 	}
+	return false;
 }
 
-
-void im_config::controls::create_code( std::string file_name, std::vector<form> forms, std::vector<basic_obj> objs )
+bool im_config::controls::create_code( std::string file_name, std::vector<form> forms, std::vector<basic_obj> objs )
 {
 	static int fctn = 0;
 	std::string file_builder = ( "void ToggleButton(const char* str_id, bool* v)\n" );
@@ -422,12 +435,13 @@ void im_config::controls::create_code( std::string file_name, std::vector<form> 
 		file_to_save << i;
 
 	file_to_save.close( );
+
+	return CheckFileExists( file_name );
 }
 
-
-void im_config::controls::load( std::string& file, std::vector<form> & forms, std::vector<basic_obj> & objs, int * last_ids )
+bool im_config::controls::load( std::string& file, std::vector<form> & forms, std::vector<basic_obj> & objs, int * last_ids )
 {
-	if ( !last_ids ) return;
+	if ( !last_ids ) return false;
 
 	std::ifstream f_read( file );
 	if ( f_read.is_open( ) )
@@ -519,10 +533,12 @@ void im_config::controls::load( std::string& file, std::vector<form> & forms, st
 			}
 		}
 		f_read.close( );
+		return true;
 	}
+	return false;
 }
 
-void im_config::controls::save( std::string& file, std::vector<form> forms, std::vector<basic_obj> objs )
+bool im_config::controls::save( std::string& file, std::vector<form> forms, std::vector<basic_obj> objs )
 {
 	remove( file.c_str( ) );
 	std::ofstream f_write( file );
@@ -554,4 +570,5 @@ void im_config::controls::save( std::string& file, std::vector<form> forms, std:
 
 		f_write.close( );
 	}
+	return CheckFileExists( file );
 }
