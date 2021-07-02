@@ -230,10 +230,10 @@ bool im_config::window_flags::load( std::string style, ImGuiStyle& custom_gui_st
 				custom_gui_style.TabRounding				= std::stof( line );
 				break;
 			case 23:
-				custom_gui_style.WindowMenuButtonPosition	= static_cast<ImGuiDir_>( std::stoi( line ) );
+				custom_gui_style.WindowMenuButtonPosition	= static_cast<ImGuiDir_>( std::stof( line ) );
 				break;
 			case 24:
-				custom_gui_style.ColorButtonPosition		= static_cast<ImGuiDir_>( std::stoi( line ) );
+				custom_gui_style.ColorButtonPosition		= static_cast<ImGuiDir_>( std::stof( line ) );
 				break;
 			}
 
@@ -310,15 +310,30 @@ bool im_config::color::load( std::string style, ImGuiStyle& custom_gui_style )
 bool im_config::controls::create_code( std::string file_name, std::vector<form> forms, std::vector<basic_obj> objs )
 {
 	static int fctn = 0;
-	std::string file_builder = ( "void ToggleButton(const char* str_id, bool* v)\n" );
-	file_builder.append(
-		"{ \nImVec2 p = ImGui::GetCursorScreenPos(); \nImDrawList* draw_list = ImGui::GetWindowDrawList();\nfloat height = ImGui::GetFrameHeight();\n" );
-	file_builder.append(
-		"float width = height * 1.55f;\nfloat radius = height * 0.50f;\n if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))\n " );
-	file_builder.append(
-		"  *v = !*v;\nImU32 col_bg;\nif (ImGui::IsItemHovered())\n\t  col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);\n" );
-	file_builder.append(
-		" else\n\t   col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);\n  draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);\n   draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));\n}\n\n\n" );
+	std::string file_builder = " /* GENERATED WITH IMGUI BUILDER :) HAS " + std::to_string(objs.size()) + " Objs & " + std::to_string(forms.size()) + " forms */\n\n\n";
+
+	bool have_toggle = false;
+	for (const auto x : objs)
+	{
+		if (x.my_type == 8)
+		{
+			have_toggle = true;
+			break;
+		}
+			
+	}
+	if (have_toggle)
+	{
+		file_builder.append("void ToggleButton(const char* str_id, bool* v)\n");
+		file_builder.append(
+			"{ \nImVec2 p = ImGui::GetCursorScreenPos(); \nImDrawList* draw_list = ImGui::GetWindowDrawList();\nfloat height = ImGui::GetFrameHeight();\n");
+		file_builder.append(
+			"float width = height * 1.55f;\nfloat radius = height * 0.50f;\n if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))\n ");
+		file_builder.append(
+			"  *v = !*v;\nImU32 col_bg;\nif (ImGui::IsItemHovered())\n\t  col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);\n");
+		file_builder.append(
+			" else\n\t   col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);\n  draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);\n   draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));\n}\n\n\n");
+	}
 
 	for ( const auto& form : forms )
 	{
@@ -328,6 +343,25 @@ bool im_config::controls::create_code( std::string file_name, std::vector<form> 
 				static_cast<int>( form.size.y ) ) + ".f});\n" );
 		file_builder.append( "\nImGui::Begin( \"" + form.name + "\");\n" );
 
+		int writer_child = 0;
+		int item_onchil = 0;
+		int cout_child = -1;
+		std::vector<int> xild;
+		for (auto b : form.child)
+		{
+			cout_child = b.id;
+			item_onchil = 0;
+			for (auto i : objs)
+			{
+				if (i.child == b.id)
+					item_onchil++;
+			}
+			xild.push_back( item_onchil );
+		}
+		writer_child = 0;
+		cout_child = -1;
+
+
 		for ( const auto& obj : objs )
 		{
 			for ( const auto& chl : form.child )
@@ -335,12 +369,16 @@ bool im_config::controls::create_code( std::string file_name, std::vector<form> 
 				//obj with child
 				if ( obj.child == chl.id )
 				{
-					file_builder.append(
-						"ImGui::SetCursorPos({" + std::to_string( static_cast<int>( chl.pos.x ) ) + ".f," + std::to_string(
-							static_cast<int>( chl.pos.y ) ) + ".f});\n" );
-					file_builder.append(
-						"ImGui::BeginChild(\"" + chl.name + "\",{" + std::to_string( static_cast<int>( chl.size.x ) ) +
-						".f," + std::to_string( static_cast<int>( chl.size.y ) ) + ".f},true );" );
+					if (writer_child == 0)
+					{
+						cout_child ++;
+						file_builder.append(
+							"\nImGui::SetCursorPos({" + std::to_string(static_cast<int>(chl.pos.x)) + ".f," + std::to_string(
+								static_cast<int>(chl.pos.y)) + ".f});\n");
+						file_builder.append(
+							"\nImGui::BeginChild(\"" + chl.name + "\",{" + std::to_string(static_cast<int>(chl.size.x)) +
+							".f," + std::to_string(static_cast<int>(chl.size.y)) + ".f},true );\n\n");
+					}
 					if ( obj.child == chl.id && obj.form == form.id && chl.father == form.id )
 					{
 						file_builder.append(
@@ -350,37 +388,54 @@ bool im_config::controls::create_code( std::string file_name, std::vector<form> 
 						{
 						case 1:
 							file_builder.append(
-								"if(ImGui::Button(\"" + obj.name + "\", {" + std::to_string( static_cast<int>( obj.size.x ) )
-								+ ".f," + std::to_string( static_cast<int>( obj.size.y ) ) + ".f }))\n{\n\n}\n" );
+								"\tif(ImGui::Button(\"" + obj.name + "\", {" + std::to_string( static_cast<int>( obj.size.x ) )
+								+ ".f," + std::to_string( static_cast<int>( obj.size.y ) ) + ".f }))\n{\n\n\t}\n" );
 							break;
 						case 2:
-							file_builder.append( "ImGui::Text(\"" + obj.name + "\");\n" );
+							file_builder.append("\tImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
+							file_builder.append("\tImGui::Text(\"" + obj.name + "\");\n" );
+							file_builder.append("\tImGui::PopItemWidth( );\n\n");
 							break;
 						case 3:
-							file_builder.append( "ImGui::InputText(\"" + obj.name + "\", buffer, 255);\n" );
+							file_builder.append("\tImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
+							file_builder.append("\tImGui::InputText(\"" + obj.name + "\", buffer, 255);\n" );
+							file_builder.append("\tImGui::PopItemWidth( );\n\n");
 							break;
 						case 4:
-							file_builder.append( "ImGui::SliderInt(\"" + obj.name + "\", &valueI,0,100);\n" );
+							file_builder.append("\tImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
+							file_builder.append( "\tImGui::SliderInt(\"" + obj.name + "\", &valueI,0,100);\n" );
+							file_builder.append("\tImGui::PopItemWidth( );\n\n");
 							break;
 						case 5:
-							file_builder.append( "ImGui::SliderFloat(\"" + obj.name + "\", &valueF,0,100);\n" );
+							file_builder.append("\tImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
+							file_builder.append( "\tImGui::SliderFloat(\"" + obj.name + "\", &valueF,0,100);\n" );
+							file_builder.append("\tImGui::PopItemWidth( );\n\n");
 							break;
 						case 6:
-							file_builder.append( "ImGui::Checkbox(\"" + obj.name + "\", &the_bool);\n" );
+							file_builder.append( "\tImGui::Checkbox(\"" + obj.name + "\", &the_bool);\n" );
 							break;
 						case 7:
-							file_builder.append( "ImGui::RadioButton(\"" + obj.name + "\", the_bool);\n" );
+							file_builder.append( "\tImGui::RadioButton(\"" + obj.name + "\", the_bool);\n" );
 							break;
 						case 8:
-							file_builder.append( "ToggleButton(\"" + obj.name + "\", the_bool);\n" );
+							file_builder.append( "\tToggleButton(\"" + obj.name + "\", the_bool);\n" );
 							break;
 						default:
 							break;
 						}
+
+						writer_child++;
 					}
-					file_builder.append( "\nImGui::EndChild();" );
+
 				}
 			}
+			if (cout_child > -1 && xild[cout_child] == writer_child)
+			{
+				file_builder.append("\nImGui::EndChild();\n");
+				cout_child = -1;
+				writer_child = 0;
+			}
+
 
 			//obj none child
 			if ( obj.child == -1 && obj.form == form.id )
@@ -397,16 +452,24 @@ bool im_config::controls::create_code( std::string file_name, std::vector<form> 
 						+ std::to_string( static_cast<int>( obj.size.y ) ) + ".f}))\n{\n\n}\n" );
 					break;
 				case 2:
+					file_builder.append("ImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
 					file_builder.append( "ImGui::Text(\"" + obj.name + "\");\n" );
+					file_builder.append("ImGui::PopItemWidth( );\n");
 					break;
 				case 3:
+					file_builder.append("ImGui::PushItemWidth("+ std::to_string( obj.size.x ) +");\n");
 					file_builder.append( "ImGui::InputText(\"" + obj.name + "\", buffer, 255);\n" );
+					file_builder.append("ImGui::PopItemWidth( );\n");
 					break;
 				case 4:
+					file_builder.append("ImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
 					file_builder.append( "ImGui::SliderInt(\"" + obj.name + "\", &valueI,0,100);\n" );
+					file_builder.append("ImGui::PopItemWidth( );\n");
 					break;
 				case 5:
+					file_builder.append("ImGui::PushItemWidth(" + std::to_string(obj.size.x) + ");\n");
 					file_builder.append( "ImGui::SliderFloat(\"" + obj.name + "\", &valueF,0,100);\n" );
+					file_builder.append("ImGui::PopItemWidth( );\n");
 					break;
 				case 6:
 					file_builder.append( "ImGui::Checkbox(\"" + obj.name + "\", &the_bool);\n" );
@@ -422,7 +485,6 @@ bool im_config::controls::create_code( std::string file_name, std::vector<form> 
 				}
 			}
 		}
-
 		file_builder.append( "\n\nImGui::End();\n}\n\n\n" );
 		fctn += 1;
 	}

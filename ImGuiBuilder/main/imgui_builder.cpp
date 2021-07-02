@@ -744,22 +744,28 @@ void imgui_builder::show_form( )
 				{
 					if ( obj.child == container.id )
 					{
+						//obj.name = "";
+						obj.my_type = -1;
+						obj.delete_me = true;
 						obj.child = -1;
 						// obj.delete_me = true;
 					}
 				}
 				// delete child
+
 				form.child.erase( form.child.begin( ) + container.id );
 				m_child_id = form.child.size( ) - 1;
 				// if obj not is last
-				if ( container.id != m_objs.size( ) )
-				{
+				/*if ( container.id != m_objs.size( ) )
+				{*/
 					// previous object, before rendering the others
 					for ( auto new_id = container.id - 1; new_id < form.child.size( ); ++new_id )
 					{
-						form.child[ new_id ].id -= new_id;
+						form.child[new_id].name = ("child" + std::to_string(new_id));
+						//form.child[new_id].name += "#new" + new_id;
+						form.child[ new_id ].id = new_id;
 					}
-				}
+				//}
 				break; //not to render the object
 			}
 
@@ -1094,9 +1100,12 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 	if ( obj.delete_me )
 	{
 		// delete obj
-		m_objs.erase( m_objs.begin( ) + obj.id );
-		// reform id objs
-		m_obj_id = m_objs.size( ) - 1;
+		if (obj.id < m_obj_id)
+		{
+			m_objs.erase(m_objs.begin() + obj.id);
+			// reform id objs
+			m_obj_id = m_objs.size() - 1;
+		}
 
 		// previous object, before rendering the others
 		for ( auto new_id = obj.id - 1; new_id < m_objs.size( ); ++new_id )
@@ -1127,9 +1136,9 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		const auto	label_size	= ImGui::CalcTextSize( obj.name.c_str( ), nullptr, true );
 		const auto	frame_size	= ImGui::CalcItemSize( ImVec2( 0, 0 ), ImGui::CalcItemWidth( ), ( label_size.y ) + style.FramePadding.y * 2.0f );
 		const auto	label_dif	= ( label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f );
-		if ( obj.size_obj.x == 0.f && obj.size_obj.y == 0.f )
-			obj.size_obj = ImVec2( frame_size.x + label_dif, frame_size.y );
-		return obj.size_obj.x - label_dif;
+		if ( obj.size.x == 0.f && obj.size.y == 0.f )
+			obj.size = ImVec2( frame_size.x + label_dif, frame_size.y );
+		return obj.size.x - label_dif;
 	};
 
 	// render obj
@@ -1143,7 +1152,7 @@ void imgui_builder::render_obj( basic_obj& obj, int current_form_id )
 		break;
 	case 3:
 	{
-		ImGui::PushItemWidth( relative_for_resize( obj ) );
+		ImGui::PushItemWidth(relative_for_resize(obj));
 		ImGui::InputText( obj.name.c_str( ), const_cast<char*>( buffer.c_str( ) ), 254 );
 		ImGui::PopItemWidth( );
 		break;
