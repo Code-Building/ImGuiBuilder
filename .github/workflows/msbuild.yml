@@ -1,0 +1,32 @@
+name: MSBuild
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Build Release x64
+      run: msbuild /m /p:Configuration=Release /p:Platform=x64
+
+    - name: Build Release x86
+      run: msbuild /m /p:Configuration=Release /p:Platform=x86
+
+    - name: Upload x64
+      uses: actions/upload-artifact@v2
+      with:
+        name: x64
+        path: 'x64'
+        
+    - name: Upload x86
+      uses: actions/upload-artifact@v2
+      with:
+        name: x86
+        path: 'x86'
+        
