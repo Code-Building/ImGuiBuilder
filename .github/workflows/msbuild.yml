@@ -17,9 +17,6 @@ jobs:
 
     - name: Build Release x86
       run: msbuild /m /p:Configuration=Release /p:Platform=x86 /p:OutputPath=x86
-
-    - name: DIR
-      run: cmd /c dir bin
       
     - name: Upload 
       uses: actions/upload-artifact@v2
