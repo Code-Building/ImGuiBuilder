@@ -13,10 +13,10 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Build Release x64
-      run: msbuild /m /p:Configuration=Release /p:Platform=x64
+      run: msbuild /m /p:Configuration=Release /p:Platform=x64 /p:OutputPath=x64
 
     - name: Build Release x86
-      run: msbuild /m /p:Configuration=Release /p:Platform=x86
+      run: msbuild /m /p:Configuration=Release /p:Platform=x86 /p:OutputPath=x86
 
     - name: DIR
       run: cmd /c dir
