@@ -19,17 +19,12 @@ jobs:
       run: msbuild /m /p:Configuration=Release /p:Platform=x86 /p:OutputPath=x86
 
     - name: DIR
-      run: cmd /c dir
+      run: cmd /c dir bin
       
-    - name: Upload x64
+    - name: Upload 
       uses: actions/upload-artifact@v2
       with:
-        name: x64
-        path: x64
+        name: Release
+        path: bin
         
-    - name: Upload x86
-      uses: actions/upload-artifact@v2
-      with:
-        name: x86
-        path: x86
         
